@@ -1,0 +1,18 @@
+name: "Delete Merged Main Branches"
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  delete:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # 全てのブランチ一覧を取得
+          fetch-depth: 0
+      - name: Delete Branches
+        run: |
+          git branch -r --merged=main | grep -vE '^\s*origin/(main$|test$|dev$|HEAD$)' | sed 's/origin\///' | xargs git push --delete origin

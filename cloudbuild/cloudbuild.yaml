@@ -1,53 +1,44 @@
 options:
   logging: CLOUD_LOGGING_ONLY
-  substitution_option: ALLOW_LOOSE
 
 steps:
-  # 変更されたサービス一覧を取得する
-  - id: detect-changes
-    name: 'gcr.io/cloud-builders/git'
-    entrypoint: 'bash'
+  # Docker Build & Push（並列）
+  - id: build-and-push
+    name: "gcr.io/cloud-builders/docker"
+    entrypoint: bash
     args:
-      - '-c'
+      - "-c"
       - |
-        git fetch origin main
-        CHANGED_DIRS=$(git diff --name-only FETCH_HEAD | grep '^backend/' | cut -d'/' -f2 | sort | uniq)
-        echo $CHANGED_DIRS > changed_dirs.txt
-
-  # サービスごとに並列ビルド＆push＆デプロイ
-  - id: build-and-deploy
-    name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        COMMIT_SHA=$(echo $BUILD_ID | cut -c1-7)
-        for dir in $(cat changed_dirs.txt); do
-          echo "Starting Cloud Build for $dir"
-
-          gcloud builds submit backend/$dir \
-            --tag asia.gcr.io/$PROJECT_ID/$dir:$COMMIT_SHA \
-            --async
-
+        SHORT_SHA=$(echo $COMMIT_SHA | cut -c1-7)
+        for dir in backend/*/; do
+          svc=$(basename "$dir")
+          echo "Building $svc"
+          docker build -t asia-northeast1-docker.pkg.dev/$PROJECT_ID/ai-hisho-backend/$svc:$SHORT_SHA "$dir" &
         done
+        wait
 
-  # 全部pushされたら、Cloud Runへデプロイ
+        for dir in backend/*/; do
+          svc=$(basename "$dir")
+          echo "Pushing $svc"
+          docker push asia-northeast1-docker.pkg.dev/$PROJECT_ID/ai-hisho-backend/$svc:$SHORT_SHA &
+        done
+        wait
+
+  # Cloud Run Deploy（並列）
   - id: deploy
-    name: 'gcr.io/cloud-builders/gcloud'
-    entrypoint: 'bash'
+    name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    entrypoint: bash
     args:
-      - '-c'
+      - "-c"
       - |
-        COMMIT_SHA=$(echo $BUILD_ID | cut -c1-7)
-        for dir in $(cat changed_dirs.txt); do
-          echo "Deploying $dir to Cloud Run"
-
-          gcloud run deploy $dir \
-            --image asia.gcr.io/$PROJECT_ID/$dir:$COMMIT_SHA \
-            --region asia-northeast1 \
-            --platform managed \
+        SHORT_SHA=$(echo $COMMIT_SHA | cut -c1-7)
+        for dir in backend/*/; do
+          svc=$(basename "$dir")
+          echo "Deploying $svc to Cloud Run"
+          gcloud run deploy "$svc" \
+            --image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/ai-hisho-backend/$svc:$SHORT_SHA \
+            --region=asia-northeast1 \
+            --platform=managed \
             --quiet &
-
         done
-
         wait

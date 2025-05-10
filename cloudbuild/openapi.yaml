@@ -1,0 +1,74 @@
+swagger: "2.0"
+info:
+  title: "My Secure API"
+  description: "Protected by Firebase Auth"
+  version: "1.0.0"
+schemes:
+  - https
+paths:
+  /api/weather-advice:
+    post:
+      operationId: postWeatherAdvice
+      responses:
+        "200":
+          description: "Success"
+      x-google-backend:
+        address: https://weather-advice-131464926474.asia-northeast1.run.app
+  /api/sync-schedules:
+    post:
+      operationId: postSyncSchedules
+      responses:
+        "200":
+          description: "Success"
+      x-google-backend:
+        address: https://sync-schedules-131464926474.asia-northeast1.run.app
+  /api/generate-checklist:
+    post:
+      operationId: postGenerateChecklist
+      responses:
+        "200":
+          description: "Success"
+      x-google-backend:
+        address: https://generate-checklist-131464926474.asia-northeast1.run.app
+  /api/checklist-toggle:
+    post:
+      operationId: postChecklistToggle
+      responses:
+        "200":
+          description: "Success"
+      x-google-backend:
+        address: https://checklist-toggle-131464926474.asia-northeast1.run.app
+  /api/message-schedule:
+    post:
+      operationId: postMessageSchedule
+      responses:
+        "200":
+          description: "Success"
+      x-google-backend:
+        address: https://message-schedule-131464926474.asia-northeast1.run.app
+  /api/schedules:
+    post:
+      operationId: postSchedules
+      responses:
+        "200":
+          description: "Success"
+      x-google-backend:
+        address: https://schedules-131464926474.asia-northeast1.run.app
+  /api/create-schedule:
+    post:
+      operationId: postCreateSchedule
+      responses:
+        "200":
+          description: "Success"
+      x-google-backend:
+        address: https://create-schedule-131464926474.asia-northeast1.run.app
+securityDefinitions:
+  firebase:
+    authorizationUrl: ""
+    flow: "implicit"
+    type: "oauth2"
+    x-google-issuer: "https://securetoken.google.com/ai-hisho-458317"
+    x-google-jwks_uri: "https://www.googleapis.com/service_accounts/v1/metadata/x509/securetoken@system.gserviceaccount.com"
+    x-google-audiences: "ai-hisho-458317"
+security:
+  - firebase: []

@@ -1,13 +1,8 @@
-from google.cloud import firestore
+from lib.firestore_client import get_firestore_client, get_query_with_and_filters
 from datetime import datetime, timedelta, timezone
 import logging
 
 logger = logging.getLogger()
-logger.info("logtest")
-
-
-def get_firestore_client(database_name: str = "(default)"):
-    return firestore.Client(database=database_name)
 
 
 def get_records_for_day_offset(collection_name: str, offset_days: int):
@@ -18,11 +13,13 @@ def get_records_for_day_offset(collection_name: str, offset_days: int):
     end = target_day + timedelta(days=1)
 
     db = get_firestore_client("hisho-events")
-    query = (
-        db.collection(collection_name)
-        .where(filter=("start_time", ">=", start))
-        .where(filter=("start_time", "<", end))
-    )
+
+    filters = [
+        ("start_time", ">=", start),
+        ("start_time", "<", end),
+    ]
+
+    query = get_query_with_and_filters(db.collection("events"), filters)
 
     return list(query.stream())
 

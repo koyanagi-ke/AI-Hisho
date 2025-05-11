@@ -1,4 +1,5 @@
 from lib.firestore_client import get_firestore_client, get_query_with_and_filters
+import json
 from datetime import datetime, timedelta, timezone
 import logging
 
@@ -32,4 +33,4 @@ def get_all_records():
         records = get_records_for_day_offset(collection_name, offset)
         logger.info(f"\n--- {offset}日後のレコード ---")
         for doc in records:
-            logger.info(doc.id, doc.to_dict())
+            logger.info(f"{doc.id}, {json.dumps(doc.to_dict())}")

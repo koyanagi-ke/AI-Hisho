@@ -1,7 +1,7 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import logging
-from logger_setup import configure_logger
+from lib.logger_setup import configure_logger
 from get_all_weather import get_all_records
 
 

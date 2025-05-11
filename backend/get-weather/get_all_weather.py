@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 import logging
 
 logger = logging.getLogger()
+logger.info("logtest")
 
 
 def get_firestore_client(database_name: str = "(default)"):

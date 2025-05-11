@@ -14,3 +14,7 @@ def get_query_with_and_filters(collection, filters):
 def get_query_with_or_filters(collection, filters):
     field_filters = [FieldFilter(field, op, val) for field, op, val in filters]
     return collection.where(filter=BaseCompositeFilter("OR", field_filters))
+
+
+def update_document_weather(collection, doc_id: str, forecast: dict):
+    collection.document(doc_id).update({"weather_info": forecast})

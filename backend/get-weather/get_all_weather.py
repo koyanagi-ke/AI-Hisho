@@ -1,5 +1,8 @@
 from google.cloud import firestore
 from datetime import datetime, timedelta, timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def get_firestore_client(database_name: str = "(default)"):
@@ -29,6 +32,6 @@ def get_all_records():
 
     for offset in offsets:
         records = get_records_for_day_offset(collection_name, offset)
-        print(f"\n--- {offset}日後のレコード ---")
+        logger.info(f"\n--- {offset}日後のレコード ---")
         for doc in records:
-            print(doc.id, doc.to_dict())
+            logger.info(doc.id, doc.to_dict())

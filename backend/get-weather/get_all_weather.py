@@ -2,8 +2,7 @@ from google.cloud import firestore
 from datetime import datetime, timedelta, timezone
 import logging
 
-logger = logging.getLogger(__name__)
-logger.info("これは表示されるはずのログです")
+logger = logging.getLogger()
 
 
 def get_firestore_client(database_name: str = "(default)"):
@@ -18,11 +17,10 @@ def get_records_for_day_offset(collection_name: str, offset_days: int):
     end = target_day + timedelta(days=1)
 
     db = get_firestore_client("hisho-events")
-
     query = (
         db.collection(collection_name)
-        .where(filter=("start_time", ">=", start))
-        .where(filter=("start_time", "<", end))
+        .where("start_time", ">=", start)
+        .where("start_time", "<", end)
     )
 
     return list(query.stream())

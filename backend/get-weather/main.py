@@ -1,6 +1,8 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 import os
+from get_all_weather import get_all_records
+
 
 # ロガーインスタンス作成
 logger = logging.getLogger(__name__)
@@ -42,6 +44,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         logger.info(
             f"PUTリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={put_data.decode('utf-8')}"
         )
+
+        get_all_records()
 
         self.send_response(200)
         self.send_header("Content-type", "text/plain")

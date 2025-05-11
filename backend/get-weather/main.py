@@ -1,21 +1,12 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import logging
 import os
+import logging
+from logger_setup import configure_logger
 from get_all_weather import get_all_records
 
 
-# ロガーインスタンス作成
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# 標準出力にログを出すハンドラー
-if not logger.handlers:
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+configure_logger()
+logger = logging.getLogger()
 
 
 class RequestHandler(BaseHTTPRequestHandler):

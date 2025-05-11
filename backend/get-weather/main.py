@@ -2,7 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import os
 import logging
 from lib.logger_setup import configure_logger
-from get_all_weather import get_all_records
+from get_all_weather import get_all_records, update_weather_for_records
 
 
 configure_logger()
@@ -39,7 +39,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             f"PUTリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={put_data.decode('utf-8')}"
         )
 
-        get_all_records()
+        records = get_all_records()
+        update_weather_for_records(records)
 
         self.send_response(200)
         self.send_header("Content-type", "text/plain")

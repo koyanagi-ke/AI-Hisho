@@ -1,0 +1,23 @@
+main:
+  steps:
+    - callGetWeather:
+        call: http.put
+        args:
+          url: https://get-weather-131464926474.asia-northeast1.run.app
+
+    - parallel_step:
+        parallel:
+          branches:
+            - callWeatherAdvice:
+                steps:
+                  - weatherAdviceCall:
+                      call: http.put
+                      args:
+                        url: https://weather-advice-131464926474.asia-northeast1.run.app
+
+            - callGenerateChecklist:
+                steps:
+                  - generateChecklistCall:
+                      call: http.put
+                      args:
+                        url: https://generate-checklist-131464926474.asia-northeast1.run.app

@@ -35,32 +35,6 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b"OK")
 
-    def do_PUT(self):
-        content_length = int(self.headers.get("Content-Length", 0))
-        put_data = self.rfile.read(content_length)
-
-        logger.info(
-            f"PUTリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={put_data.decode('utf-8')}"
-        )
-
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(b"PUT OK")
-
-    def do_PATCH(self):
-        content_length = int(self.headers.get("Content-Length", 0))
-        patch_data = self.rfile.read(content_length)
-
-        logger.info(
-            f"PATCHリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={patch_data.decode('utf-8')}"
-        )
-
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(b"PATCH OK")
-
 
 def run():
     port = int(os.environ.get("PORT", 8080))

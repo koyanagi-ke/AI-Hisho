@@ -1,16 +1,12 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import logging
 import os
+import logging
+from lib.logger_setup import configure_logger
+from get_all_weather import get_all_records, update_weather_for_records
 
-# ロガーインスタンス作成
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
-# 標準出力にログを出すハンドラー
-handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+configure_logger()
+logger = logging.getLogger()
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -42,6 +38,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         logger.info(
             f"PUTリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={put_data.decode('utf-8')}"
         )
+
+        records = get_all_records()
+        update_weather_for_records(records)
 
         self.send_response(200)
         self.send_header("Content-type", "text/plain")

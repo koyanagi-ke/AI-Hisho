@@ -1,5 +1,6 @@
 import requests
 from .geocode_address import geocode_address_nominatim
+from ratelimit import limits, sleep_and_retry
 
 
 def _get_forecast(lat: float, lon: float, api_key: str):
@@ -10,11 +11,16 @@ def _get_forecast(lat: float, lon: float, api_key: str):
     return response.json()
 
 
+@sleep_and_retry
+@limits(calls=60, period=60)
+def _safe_get_forecast(lat, lon, api_key):
+    return _get_forecast(lat, lon, api_key)
+
+
 def fetch_weather_for_document(doc, api_key: str):
     address = doc.get("address")
     if not address:
         return {}
     lat, lon = geocode_address_nominatim(address)
-    forecast = _get_forecast(lat, lon, api_key)
+    forecast = _safe_get_forecast(lat, lon, api_key)
     return forecast
-

@@ -1,0 +1,36 @@
+main:
+  params: [docId]
+  steps:
+    - callGetWeather:
+        call: http.patch
+        args:
+          url: https://get-weather-131464926474.asia-northeast1.run.app
+          headers:
+            Content-Type: application/json
+          body:
+            docId: ${docId}
+
+    - parallel_step:
+        parallel:
+          branches:
+            - callWeatherAdvice:
+                steps:
+                  - weatherAdviceCall:
+                      call: http.patch
+                      args:
+                        url: https://weather-advice-131464926474.asia-northeast1.run.app
+                        headers:
+                          Content-Type: application/json
+                        body:
+                          docId: ${docId}
+
+            - callGenerateChecklist:
+                steps:
+                  - generateChecklistCall:
+                      call: http.patch
+                      args:
+                        url: https://generate-checklist-131464926474.asia-northeast1.run.app
+                        headers:
+                          Content-Type: application/json
+                        body:
+                          docId: ${docId}

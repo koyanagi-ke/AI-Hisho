@@ -8,11 +8,11 @@ class FeaturesStep extends StatelessWidget {
   final String themeColor;
 
   const FeaturesStep({
-    Key? key,
+    super.key,
     required this.onNext,
     required this.onBack,
     required this.themeColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +24,7 @@ class FeaturesStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'AI秘書の主な機能',
+          'ミライフの主な機能',
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 24),
@@ -56,15 +56,8 @@ class FeaturesStep extends StatelessWidget {
         ),
         const Spacer(),
         Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            CustomButton(
-              text: '戻る',
-              onPressed: onBack,
-              isPrimary: false,
-              isFullWidth: false,
-              themeColor: themeColor,
-            ),
             CustomButton(
               text: '次へ',
               onPressed: onNext,

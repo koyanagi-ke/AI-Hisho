@@ -9,13 +9,13 @@ class CustomButton extends StatelessWidget {
   final bool isFullWidth;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.isPrimary = true,
     this.themeColor = 'orange',
     this.isFullWidth = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

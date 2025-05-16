@@ -53,13 +53,13 @@ class ColorStep extends StatelessWidget {
             _buildColorOption(
               context,
               colorName: 'amber',
-              displayName: 'アンバー',
+              displayName: 'イエロー',
               isSelected: selectedColor == 'amber',
             ),
             _buildColorOption(
               context,
               colorName: 'emerald',
-              displayName: 'エメラルド',
+              displayName: 'グリーン',
               isSelected: selectedColor == 'emerald',
             ),
           ],

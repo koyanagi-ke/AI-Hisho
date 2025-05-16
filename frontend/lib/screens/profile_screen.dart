@@ -151,7 +151,7 @@ class ProfileScreen extends StatelessWidget {
           _buildSettingItem(
             context,
             icon: Icons.settings,
-            title: 'AI秘書の設定',
+            title: 'ミライフの設定',
             primaryColor: primaryColor,
             lightColor: lightColor,
             onTap: () => Navigator.of(context).pushNamed('/tutorial'),

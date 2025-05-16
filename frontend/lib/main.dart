@@ -1,3 +1,4 @@
+import 'package:app/screens/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'constants/theme.dart';
@@ -28,15 +29,14 @@ class MyApp extends StatelessWidget {
               ),
             );
           }
-
           final themeColor = prefsProvider.preferences.themeColor;
           final tutorialCompleted = prefsProvider.preferences.tutorialCompleted;
 
           return MaterialApp(
-            title: 'AI秘書',
+            title: 'Miralife',
             theme: AppTheme.getTheme(themeColor),
             home:
-                tutorialCompleted ? const HomeScreen() : const TutorialScreen(),
+                tutorialCompleted ? const HomeScreen() : const WelcomeScreen(),
             routes: {
               '/home': (context) => const HomeScreen(),
               '/profile': (context) => const ProfileScreen(),

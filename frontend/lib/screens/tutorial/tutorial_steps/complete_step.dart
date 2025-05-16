@@ -4,15 +4,13 @@ import '../../../widgets/custom_button.dart';
 
 class CompleteStep extends StatelessWidget {
   final VoidCallback onComplete;
-  final List<String> selectedPriority;
-  final String selectedStyle;
+  final String selectedCharacter;
   final String selectedColor;
 
   const CompleteStep({
     super.key,
     required this.onComplete,
-    required this.selectedPriority,
-    required this.selectedStyle,
+    required this.selectedCharacter,
     required this.selectedColor,
   });
 
@@ -48,7 +46,7 @@ class CompleteStep extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
-            'あなた専用のAI秘書の設定が完了しました。いつでも設定から変更することができます。',
+            'あなた専用のミライフの設定が完了しました。いつでも設定から変更することができます。',
             style: Theme.of(context).textTheme.bodyMedium,
             textAlign: TextAlign.center,
           ),
@@ -83,7 +81,7 @@ class CompleteStep extends StatelessWidget {
               const SizedBox(height: 12),
               _buildSettingRow(
                 label: 'レイアウト',
-                value: _getStyleText(),
+                value: _getCharacterText(),
               ),
               const SizedBox(height: 12),
               _buildColorRow(
@@ -173,8 +171,8 @@ class CompleteStep extends StatelessWidget {
     );
   }
 
-  String _getStyleText() {
-    switch (selectedStyle) {
+  String _getCharacterText() {
+    switch (selectedCharacter) {
       case 'friendly':
         return 'フレンドリー';
       case 'professional':
@@ -195,9 +193,9 @@ class CompleteStep extends StatelessWidget {
       case 'rose':
         return 'ローズ';
       case 'amber':
-        return 'アンバー';
+        return 'イエロー';
       case 'emerald':
-        return 'エメラルド';
+        return 'グリーン';
       default:
         return 'オレンジ';
     }

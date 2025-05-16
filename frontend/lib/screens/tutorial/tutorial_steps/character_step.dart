@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import '../../../constants/colors.dart';
 import '../../../widgets/custom_button.dart';
 
-class StyleStep extends StatelessWidget {
+class CharacterStep extends StatelessWidget {
   final VoidCallback onNext;
   final VoidCallback onBack;
-  final String selectedStyle;
+  final String selectedCharacter;
   final Function(String) setStyle;
   final String themeColor;
 
-  const StyleStep({
+  const CharacterStep({
     super.key,
     required this.onNext,
     required this.onBack,
-    required this.selectedStyle,
+    required this.selectedCharacter,
     required this.setStyle,
     required this.themeColor,
   });
@@ -28,12 +28,12 @@ class StyleStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'AIアシスタントのキャラクター',
+          'AIアシスタントのキャラクター選択',
           style: Theme.of(context).textTheme.headlineMedium,
         ),
         const SizedBox(height: 8),
         Text(
-          'あなたに合ったAIアシスタントのキャラクターを選んでください',
+          'お好きなAIアシスタントのキャラクターを選んでください',
           style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 24),
@@ -43,7 +43,7 @@ class StyleStep extends StatelessWidget {
           name: 'フレンドリー',
           description: '親しみやすく、会話を楽しむアシスタント。日常的な会話も得意です。',
           icon: Icons.sentiment_satisfied_alt,
-          isSelected: selectedStyle == 'friendly',
+          isSelected: selectedCharacter == 'friendly',
           primaryColor: primaryColor,
           lightColor: lightColor,
         ),
@@ -54,7 +54,7 @@ class StyleStep extends StatelessWidget {
           name: 'プロフェッショナル',
           description: '効率的で簡潔な対応が特徴。ビジネスシーンに最適です。',
           icon: Icons.business_center,
-          isSelected: selectedStyle == 'professional',
+          isSelected: selectedCharacter == 'professional',
           primaryColor: primaryColor,
           lightColor: lightColor,
         ),
@@ -65,7 +65,7 @@ class StyleStep extends StatelessWidget {
           name: 'サポーティブ',
           description: '細やかな気配りと丁寧なサポートが得意。初心者にもやさしく対応します。',
           icon: Icons.support_agent,
-          isSelected: selectedStyle == 'supportive',
+          isSelected: selectedCharacter == 'supportive',
           primaryColor: primaryColor,
           lightColor: lightColor,
         ),
@@ -76,7 +76,7 @@ class StyleStep extends StatelessWidget {
           name: 'エネルギッシュ',
           description: '明るく元気なキャラクター。モチベーションを高めたいときにおすすめです。',
           icon: Icons.bolt,
-          isSelected: selectedStyle == 'energetic',
+          isSelected: selectedCharacter == 'energetic',
           primaryColor: primaryColor,
           lightColor: lightColor,
         ),

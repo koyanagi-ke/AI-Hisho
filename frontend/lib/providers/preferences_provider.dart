@@ -41,8 +41,8 @@ class PreferencesProvider with ChangeNotifier {
     await savePreferences(newPrefs);
   }
 
-  Future<void> updateAssistantCharacter(String style) async {
-    final newPrefs = _preferences.copyWith(assistantCharacter: style);
+  Future<void> updateAssistantCharacter(String character) async {
+    final newPrefs = _preferences.copyWith(assistantCharacter: character);
     await savePreferences(newPrefs);
   }
 

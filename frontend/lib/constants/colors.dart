@@ -3,13 +3,25 @@ import 'package:flutter/material.dart';
 class AppColors {
   // テーマカラー
   static const Map<String, Color> themeColors = {
+    'default': primary,
     'orange': Color(0xFFF97316),
     'rose': Color(0xFFF43F5E),
     'amber': Color(0xFFF59E0B),
     'emerald': Color(0xFF10B981),
   };
 
+  static const Map<String, Color> themeLightColors = {
+    'default': Color(0xFFFEF5F0),
+    'orange': Color(0xFFFEF5F0),
+    'rose': Color(0xFFFEF2F3),
+    'amber': Color(0xFFFEF7E6),
+    'emerald': Color(0xFFE6F7F2),
+  };
+
   // 基本カラー
+  static const Color primary = Color(0xFFF97316);
+  static const Color primaryLight = Color(0xFFFEF5F0);
+  static const Color topBackgroundColor = Color(0xFFFCD5B4);
   static const Color black = Color(0xFF000000);
   static const Color white = Color(0xFFFFFFFF);
   static const Color gray50 = Color(0xFFF9FAFB);

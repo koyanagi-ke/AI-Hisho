@@ -1,10 +1,10 @@
+import 'package:app/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/preferences_provider.dart';
 import '../../widgets/step_progress_bar.dart';
-import 'tutorial_steps/welcome_step.dart';
 import 'tutorial_steps/features_step.dart';
-import 'tutorial_steps/style_step.dart';
+import 'tutorial_steps/character_step.dart';
 import 'tutorial_steps/color_step.dart';
 import 'tutorial_steps/complete_step.dart';
 
@@ -16,10 +16,9 @@ class TutorialScreen extends StatefulWidget {
 }
 
 class _TutorialScreenState extends State<TutorialScreen> {
-  int _currentStep = 0;
+  int _currentStep = 1;
   final int _totalSteps = 5;
-  final List<String> _selectedPriority = [];
-  String _selectedStyle = 'friendly';
+  String _selectedCharacter = 'friendly';
   String _selectedColor = 'orange';
 
   void _handleNext() {
@@ -40,7 +39,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
 
   void _setStyle(String style) {
     setState(() {
-      _selectedStyle = style;
+      _selectedCharacter = style;
     });
   }
 
@@ -53,8 +52,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   void _completeTutorial() {
     final provider = Provider.of<PreferencesProvider>(context, listen: false);
     provider.savePreferences(provider.preferences.copyWith(
-      priorityItems: _selectedPriority,
-      assistantCharacter: _selectedStyle,
+      assistantCharacter: _selectedCharacter,
       themeColor: _selectedColor,
       tutorialCompleted: true,
     ));
@@ -65,6 +63,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.themeLightColors[_selectedColor],
       body: SafeArea(
         child: Column(
           children: [
@@ -90,11 +89,6 @@ class _TutorialScreenState extends State<TutorialScreen> {
 
   Widget _buildCurrentStep() {
     switch (_currentStep) {
-      case 0:
-        return WelcomeStep(
-          onNext: _handleNext,
-          themeColor: _selectedColor,
-        );
       case 1:
         return FeaturesStep(
           onNext: _handleNext,
@@ -102,10 +96,10 @@ class _TutorialScreenState extends State<TutorialScreen> {
           themeColor: _selectedColor,
         );
       case 2:
-        return StyleStep(
+        return CharacterStep(
           onNext: _handleNext,
           onBack: _handleBack,
-          selectedStyle: _selectedStyle,
+          selectedCharacter: _selectedCharacter,
           setStyle: _setStyle,
           themeColor: _selectedColor,
         );
@@ -119,8 +113,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
       case 4:
         return CompleteStep(
           onComplete: _completeTutorial,
-          selectedPriority: _selectedPriority,
-          selectedStyle: _selectedStyle,
+          selectedCharacter: _selectedCharacter,
           selectedColor: _selectedColor,
         );
       default:

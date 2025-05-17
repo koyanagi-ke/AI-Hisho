@@ -4,9 +4,11 @@ import re
 import logging
 import google.generativeai as genai
 
+from .secret_manager_client import get_gemini_api_key
+
 logger = logging.getLogger(__name__)
 
-genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+genai.configure(api_key=get_gemini_api_key())
 model = genai.GenerativeModel("models/gemini-2.0-flash")
 
 

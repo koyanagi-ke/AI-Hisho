@@ -9,7 +9,7 @@ from lib.gemini_client import generate_checklist_items
 
 configure_logger()
 logger = logging.getLogger(__name__)
-db = get_firestore_client()
+db = get_firestore_client("hisho-events")
 
 
 class RequestHandler(BaseHTTPRequestHandler):

@@ -6,8 +6,14 @@ import 'providers/preferences_provider.dart';
 import 'screens/tutorial/tutorial_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/profile_screen.dart';
+import 'services/auth_service.dart';
+import 'package:firebase_core/firebase_core.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  // 匿名ログインを実行
+  await AuthService.signInAnonymously();
   runApp(const MyApp());
 }
 

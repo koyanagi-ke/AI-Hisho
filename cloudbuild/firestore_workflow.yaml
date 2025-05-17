@@ -7,8 +7,7 @@ main:
           url: https://get-weather-131464926474.asia-northeast1.run.app
           headers:
             Content-Type: application/json
-          body:
-            docId: ${docId}
+          body: ${docId}
 
     - parallel_step:
         parallel:
@@ -21,8 +20,7 @@ main:
                         url: https://weather-advice-131464926474.asia-northeast1.run.app
                         headers:
                           Content-Type: application/json
-                        body:
-                          docId: ${docId}
+                        body: ${docId}
 
             - callGenerateChecklist:
                 steps:
@@ -32,5 +30,4 @@ main:
                         url: https://generate-checklist-131464926474.asia-northeast1.run.app
                         headers:
                           Content-Type: application/json
-                        body:
-                          docId: ${docId}
+                        body: ${docId}

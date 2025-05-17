@@ -5,10 +5,11 @@ from google.auth import default
 from google.auth.transport.requests import Request
 import requests
 from firebase_functions.firestore_fn import (
-  on_document_created,
-  Event,
-  DocumentSnapshot,
+    on_document_created,
+    Event,
+    DocumentSnapshot,
 )
+
 
 @on_document_created(document="users/{userId}")
 @functions_framework.cloud_event

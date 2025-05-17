@@ -64,9 +64,9 @@ class RequestHandler(BaseHTTPRequestHandler):
                 raise ValueError(f"イベントが存在しません: {doc_id}")
 
             event = event_doc.to_dict()
-            datetime = event.get("datetime", "")
+            datetime = event.get("start_time", "")
             location = event.get("location", "")
-            description = event.get("description", "")
+            description = event.get("title", "")
 
             checklist_ref = event_ref.collection("checklists")
             weather_info = event.get("weather_info")

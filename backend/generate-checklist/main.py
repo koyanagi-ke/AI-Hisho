@@ -54,14 +54,24 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         try:
             data = json.loads(patch_data)
-            doc_id = data.get("docId")
-            if not doc_id:
-                raise ValueError("docIdが必要です")
+            user_id = data.get("userId")
+            event_id = data.get("eventId")
+            if not user_id:
+                raise ValueError("userIdが必要です")
+            if not event_id:
+                raise ValueError("eventIdが必要です")
 
-            event_ref = db.collection("events").document(doc_id)
+            event_ref = (
+                db.collection("users")
+                .document(user_id)
+                .collection("events")
+                .document(event_id)
+            )
             event_doc = event_ref.get()
             if not event_doc.exists:
-                raise ValueError(f"イベントが存在しません: {doc_id}")
+                raise ValueError(
+                    f"イベントが存在しません: userId:{user_id}, eventId{event_id}"
+                )
 
             event = event_doc.to_dict()
             datetime = event.get("start_time", "")

@@ -8,6 +8,8 @@ class AppColors {
     'rose': Color(0xFFF43F5E),
     'amber': Color(0xFFF59E0B),
     'emerald': Color(0xFF10B981),
+    'blue': Color(0xFF3B82F6),
+    'indigo': Color(0xFF6366F1),
   };
 
   static const Map<String, Color> themeLightColors = {
@@ -16,6 +18,8 @@ class AppColors {
     'rose': Color(0xFFFEF2F3),
     'amber': Color(0xFFFEF7E6),
     'emerald': Color(0xFFE6F7F2),
+    'blue': Color(0xFFEFF6FF),
+    'indigo': Color(0xFFEDE9FE),
   };
 
   // 基本カラー

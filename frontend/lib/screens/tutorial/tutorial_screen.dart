@@ -18,7 +18,7 @@ class TutorialScreen extends StatefulWidget {
 class _TutorialScreenState extends State<TutorialScreen> {
   int _currentStep = 1;
   final int _totalSteps = 5;
-  String _selectedCharacter = 'friendly';
+  String _selectedCharacter = 'normal';
   String _selectedColor = 'orange';
 
   void _handleNext() {
@@ -37,9 +37,9 @@ class _TutorialScreenState extends State<TutorialScreen> {
     }
   }
 
-  void _setStyle(String style) {
+  void _setCharacter(String character) {
     setState(() {
-      _selectedCharacter = style;
+      _selectedCharacter = character;
     });
   }
 
@@ -100,7 +100,7 @@ class _TutorialScreenState extends State<TutorialScreen> {
           onNext: _handleNext,
           onBack: _handleBack,
           selectedCharacter: _selectedCharacter,
-          setStyle: _setStyle,
+          setCharacter: _setCharacter,
           themeColor: _selectedColor,
         );
       case 3:

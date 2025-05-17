@@ -15,4 +15,4 @@ jobs:
           fetch-depth: 0
       - name: Delete Branches
         run: |
-          git branch -r --merged=main | grep -vE '^\s*origin/(main$|test$|dev$|HEAD$)' | sed 's/origin\///' | xargs git push --delete origin
+          git branch -r --merged origin/main | grep -vE '^\s*origin/(main$|test$|dev$|HEAD$)' | sed 's/origin\///' | xargs -r -n 1 git push origin --delete

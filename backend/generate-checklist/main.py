@@ -1,16 +1,15 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 import os
+import json
 
-# ロガーインスタンス作成
+from lib.logger_setup import configure_logger
+from lib.firestore_client import get_firestore_client
+from lib.gemini_client import generate_checklist_items
+
+configure_logger()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# 標準出力にログを出すハンドラー
-handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+db = get_firestore_client()
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -50,16 +49,53 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_PATCH(self):
         content_length = int(self.headers.get("Content-Length", 0))
-        patch_data = self.rfile.read(content_length)
+        patch_data = self.rfile.read(content_length).decode("utf-8")
+        logger.info(f"PATCH受信: {patch_data}")
 
-        logger.info(
-            f"PATCHリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={patch_data.decode('utf-8')}"
-        )
+        try:
+            data = json.loads(patch_data)
+            doc_id = data.get("docId")
+            if not doc_id:
+                raise ValueError("docIdが必要です")
 
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(b"PATCH OK")
+            event_ref = db.collection("events").document(doc_id)
+            event_doc = event_ref.get()
+            if not event_doc.exists:
+                raise ValueError(f"イベントが存在しません: {doc_id}")
+
+            event = event_doc.to_dict()
+            datetime = event.get("datetime", "")
+            location = event.get("location", "")
+            description = event.get("description", "")
+
+            checklist_ref = event_ref.collection("checklists")
+            weather_info = event.get("weather_info")
+
+            result = generate_checklist_items(
+                datetime, location, description, weather_info=weather_info
+            )
+
+            for category in ["required", "optional"]:
+                for item in result.get(category, []):
+                    checklist_ref.document().set(
+                        {
+                            "item": item.get("item"),
+                            "prepare_before": item.get("prepare_before", 0),
+                            "required": category == "required",
+                            "checked": False,
+                        }
+                    )
+
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+
+        except Exception as e:
+            logger.exception("エラー発生")
+            self.send_response(500)
+            self.end_headers()
+            self.wfile.write(f"Error: {str(e)}".encode("utf-8"))
 
 
 def run():

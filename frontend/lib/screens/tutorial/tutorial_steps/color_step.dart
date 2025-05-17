@@ -62,6 +62,18 @@ class ColorStep extends StatelessWidget {
               displayName: 'グリーン',
               isSelected: selectedColor == 'emerald',
             ),
+            _buildColorOption(
+              context,
+              colorName: 'blue',
+              displayName: 'ブルー',
+              isSelected: selectedColor == 'blue',
+            ),
+            _buildColorOption(
+              context,
+              colorName: 'indigo',
+              displayName: 'パープル',
+              isSelected: selectedColor == 'indigo',
+            ),
           ],
         ),
         const Spacer(),
@@ -99,7 +111,7 @@ class ColorStep extends StatelessWidget {
     return GestureDetector(
       onTap: () => setColor(colorName),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),

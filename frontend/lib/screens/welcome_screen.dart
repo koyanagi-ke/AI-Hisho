@@ -15,7 +15,7 @@ class WelcomeScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(
-                'assets/robots/hey.png',
+                'assets/images/characters/normal.png',
                 width: 160,
                 height: 160,
               ),

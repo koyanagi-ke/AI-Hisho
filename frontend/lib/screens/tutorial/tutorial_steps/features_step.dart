@@ -50,7 +50,7 @@ class FeaturesStep extends StatelessWidget {
           context,
           icon: Icons.location_on,
           title: '適切なタイミングでのリマインダー',
-          description: '移動時間を考慮した通知や、準備に必要な時間も計算します。',
+          description: '各予定と持ち物ごとに、適切なタイミングで通知を行います。',
           primaryColor: primaryColor,
           lightColor: lightColor,
         ),

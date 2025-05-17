@@ -27,7 +27,7 @@ def _get_records_for_day_offset(collection_name: str, offset_days: int):
         ("start_time", "<", end),
     ]
 
-    query = get_query_with_and_filters(db.collection(collection_name), filters)
+    query = get_query_with_and_filters(db.collection_group(collection_name), filters)
 
     return list(query.stream())
 
@@ -45,23 +45,24 @@ def get_all_records():
     return all_records
 
 
-def update_weather_for_records(records, collection_name: str = "events"):
+def update_weather_for_records(records):
     api_key = get_openweathermap_api_key()
 
     db = get_firestore_client("hisho-events")
 
     for doc in records:
-        doc_id = doc.id
+        event_id = doc.id
+        user_id = doc.reference.parent.parent.id
         try:
             forecast = fetch_weather_for_document(doc.to_dict(), api_key)
             start_time = doc.to_dict().get("start_time")
             filtered_forecast = _filter_forecast_by_dates(forecast, start_time)
             update_document_weather(
-                db.collection(collection_name), doc_id, filtered_forecast
+                db.collection("users").document(user_id).collection("events"), event_id, filtered_forecast
             )
-            logger.info(f"{doc_id} の天気情報を更新しました")
+            logger.info(f"{event_id} の天気情報を更新しました")
         except Exception as e:
-            logger.error(f"{doc_id} の処理でエラー発生: {e}")
+            logger.error(f"{event_id} の処理でエラー発生: {e}")
 
 
 def _filter_forecast_by_dates(forecast: dict, start_time: datetime):

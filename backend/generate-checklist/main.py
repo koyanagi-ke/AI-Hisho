@@ -5,7 +5,7 @@ import json
 
 from lib.logger_setup import configure_logger
 from lib.firestore_client import get_firestore_client
-from lib.gemini_client import generate_checklist_items
+from .generate_item import generate_item_per_record, update_next_check_due
 
 configure_logger()
 logger = logging.getLogger(__name__)
@@ -67,34 +67,14 @@ class RequestHandler(BaseHTTPRequestHandler):
                 .collection("events")
                 .document(event_id)
             )
-            event_doc = event_ref.get()
-            if not event_doc.exists:
+
+            if not event_ref.get().exists:
                 raise ValueError(
                     f"イベントが存在しません: userId:{user_id}, eventId{event_id}"
                 )
 
-            event = event_doc.to_dict()
-            datetime = event.get("start_time", "")
-            location = event.get("location", "")
-            description = event.get("title", "")
-
-            checklist_ref = event_ref.collection("checklists")
-            weather_info = event.get("weather_info")
-
-            result = generate_checklist_items(
-                datetime, location, description, weather_info=weather_info
-            )
-
-            for category in ["required", "optional"]:
-                for item in result.get(category, []):
-                    checklist_ref.document().set(
-                        {
-                            "item": item.get("item"),
-                            "prepare_before": item.get("prepare_before", 0),
-                            "required": category == "required",
-                            "checked": False,
-                        }
-                    )
+            result = generate_item_per_record(event_ref)
+            update_next_check_due(event_ref, result)
 
             self.send_response(200)
             self.send_header("Content-type", "application/json")

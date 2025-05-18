@@ -70,9 +70,12 @@ class RequestHandler(BaseHTTPRequestHandler):
             if not event_id:
                 raise ValueError("event ID が必要です")
 
-            data = validate_and_convert_event_data(data)
+            # idを取り除いてバリデーション
+            data_for_update = {k: v for k, v in data.items() if k != "id"}
+
+            data_for_update = validate_and_convert_event_data(data_for_update)
             event_ref = get_user_event_ref(db, user_id, event_id)
-            event_ref.update(data)
+            event_ref.update(data_for_update)
             respond(self, 200, {"status": "updated"})
         except Exception as e:
             logger.exception("PUT失敗")

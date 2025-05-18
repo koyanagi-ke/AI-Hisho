@@ -18,7 +18,7 @@ JST = timezone(timedelta(hours=9))
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        logger.info(f"リクエスト受信: パス={self.path}、ヘッダー={self.headers}")
+        logger.info(f"GETリクエスト受信")
         try:
             user_id = get_user_id_from_request(self.headers)
             query = parse_qs(urlparse(self.path).query)
@@ -43,13 +43,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             respond(self, 500, {"error": str(e)})
 
     def do_POST(self):
-        content_length = int(self.headers.get("Content-Length", 0))
-        post_data = self.rfile.read(content_length)
-
-        logger.info(
-            f"POSTリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={post_data.decode('utf-8')}"
-        )
-
+        logger.info(f"POSTリクエスト受信")
         try:
             user_id = get_user_id_from_request(self.headers)
             data = parse_json_body(self)
@@ -66,6 +60,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             respond(self, 500, {"error": str(e)})
 
     def do_PUT(self):
+        logger.info(f"PUTリクエスト受信")
         try:
             user_id = get_user_id_from_request(self.headers)
             data = parse_json_body(self)
@@ -82,6 +77,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             respond(self, 500, {"error": str(e)})
 
     def do_DELETE(self):
+        logger.info(f"DELETEリクエスト受信")
         try:
             user_id = get_user_id_from_request(self.headers)
             data = parse_json_body(self)

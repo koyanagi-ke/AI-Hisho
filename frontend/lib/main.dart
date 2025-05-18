@@ -1,3 +1,5 @@
+import 'package:app/firebase_options.dart';
+import 'package:app/providers/chat_provider.dart';
 import 'package:app/screens/welcome_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +13,9 @@ import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   // 匿名ログインを実行
   await AuthService.signInAnonymously();
   runApp(const MyApp());
@@ -22,8 +26,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => PreferencesProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => PreferencesProvider()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+      ],
       child: Consumer<PreferencesProvider>(
         builder: (context, prefsProvider, child) {
           if (prefsProvider.isLoading) {

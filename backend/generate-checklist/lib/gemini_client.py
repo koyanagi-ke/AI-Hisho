@@ -8,6 +8,7 @@ from .secret_manager_client import get_gemini_api_key
 
 logger = logging.getLogger(__name__)
 
+get_gemini_api_key()
 client = genai.Client()
 model = "gemini-2.0-flash"
 

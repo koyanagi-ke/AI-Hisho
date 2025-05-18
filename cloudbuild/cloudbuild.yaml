@@ -39,8 +39,8 @@ steps:
             --image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/ai-hisho-backend/$svc:$SHORT_SHA \
             --region=asia-northeast1 \
             --platform=managed \
-            --add-secrets="firebase-key=/secrets/firebase.json" \
-            --set-env-vars="GOOGLE_APPLICATION_CREDENTIALS=/secrets/firebase.json" \
+            --update-secrets=/etc/secrets/firebase/firebase.json=firebase-key:latest \
+            --set-env-vars=GOOGLE_APPLICATION_CREDENTIALS=/secrets/firebase/firebase.json \
             --quiet &
         done
         wait

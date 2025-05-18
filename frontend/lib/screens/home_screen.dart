@@ -1,3 +1,4 @@
+import 'package:app/widgets/chat_bot.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
@@ -73,12 +74,14 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: primaryColor,
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: const ChatBot(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      //   floatingActionButton: FloatingActionButton(
+      //     onPressed: () {},
+      //     backgroundColor: primaryColor,
+      //     child: const Icon(Icons.add),
+      //   ),
+      //   floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8.0,

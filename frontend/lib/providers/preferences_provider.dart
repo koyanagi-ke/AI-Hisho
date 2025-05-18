@@ -36,11 +36,6 @@ class PreferencesProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updatePriorityItems(List<String> items) async {
-    final newPrefs = _preferences.copyWith(priorityItems: items);
-    await savePreferences(newPrefs);
-  }
-
   Future<void> updateAssistantCharacter(String character) async {
     final newPrefs = _preferences.copyWith(assistantCharacter: character);
     await savePreferences(newPrefs);

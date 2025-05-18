@@ -54,14 +54,60 @@ paths:
           description: "Success"
       x-google-backend:
         address: https://schedules-131464926474.asia-northeast1.run.app
-  /api/create-schedule:
+  /api/crud-schedule:
     post:
       operationId: postCreateSchedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
       responses:
         "200":
           description: "Success"
       x-google-backend:
         address: https://create-schedule-131464926474.asia-northeast1.run.app
+    get:
+      operationId: getSchedule
+      parameters:
+        - name: event_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: "Success"
+      x-google-backend:
+        address: https://create-schedule-131464926474.asia-northeast1.run.app
+    put:
+      operationId: putUpdateSchedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: "Updated"
+      x-google-backend:
+        address: https://create-schedule-131464926474.asia-northeast1.run.app
+    delete:
+      operationId: deleteSchedule
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: "Deleted"
+      x-google-backend:
+        address: https://create-schedule-131464926474.asia-northeast1.run.app
+
 securityDefinitions:
   firebase:
     authorizationUrl: ""

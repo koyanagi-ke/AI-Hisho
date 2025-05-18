@@ -2,14 +2,19 @@ import os
 import json
 import re
 import logging
-import google.generativeai as genai
+from google import genai
 
 from .secret_manager_client import get_gemini_api_key
 
 logger = logging.getLogger(__name__)
 
-genai.configure(api_key=get_gemini_api_key())
-model = genai.GenerativeModel("models/gemini-2.0-flash")
+client = genai.Client()
+model = "gemini-2.0-flash"
+
+
+def create_text(contents, model=model):
+    response = client.models.generate_content(model=model, contents=contents)
+    return response
 
 
 def extract_json(text: str) -> dict:
@@ -79,6 +84,6 @@ def generate_checklist_items(
 内容: {description}
 """
 
-    response = model.generate_content(prompt)
+    response = create_text(prompt)
     logger.info(f"Gemini応答: {response.text}")
     return extract_json(response.text)

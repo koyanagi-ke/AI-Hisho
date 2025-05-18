@@ -5,7 +5,7 @@ class AIService {
 
   AIService({required String apiKey})
       : _model = GenerativeModel(
-          model: 'gemini-1.5-pro',
+          model: 'gemini-2.0-flash-001',
           apiKey: apiKey,
         );
 

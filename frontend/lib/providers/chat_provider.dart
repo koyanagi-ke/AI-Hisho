@@ -1,18 +1,17 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/chat_message.dart';
+import '../services/ai_service.dart';
 
 class ChatProvider with ChangeNotifier {
   final List<ChatMessage> _messages = [];
   bool _isTyping = false;
   final Uuid _uuid = const Uuid();
+  AIService? _aiService;
   String? _currentAIMessageId;
-  String? _apiKey;
 
   Future<void> setApiKey(String apiKey) async {
-    _apiKey = apiKey;
+    _aiService = AIService(apiKey: apiKey);
   }
 
   List<ChatMessage> get messages => _messages;
@@ -36,70 +35,57 @@ class ChatProvider with ChangeNotifier {
 
   // AIの応答を生成（ストリーミング）
   Future<void> _generateAIResponseStream(String userMessage) async {
-    if (_apiKey == null || _apiKey!.isEmpty) {
-      _addAIMessage('申し訳ありません。APIキーが設定されていません。');
+    if (_aiService == null) {
+      _addAIMessage('申し訳ありません。AI機能が初期化されていません。');
       return;
     }
+
     _isTyping = true;
     notifyListeners();
+
     try {
+      // 空のAIメッセージを作成
       _currentAIMessageId = _uuid.v4();
-      final placeholder = ChatMessage(
+      final message = ChatMessage(
         id: _currentAIMessageId!,
         text: '',
         isUser: false,
         timestamp: DateTime.now(),
       );
-      _messages.add(placeholder);
+      _messages.add(message);
       notifyListeners();
-      final uri = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$_apiKey');
 
-      final response = await http.post(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          "contents": [
-            {
-              "parts": [
-                {"text": userMessage}
-              ]
-            }
-          ]
-        }),
-      );
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-        final text = body['candidates']?[0]?['content']?['parts']?[0]
-                ?['text'] ??
-            '応答が得られませんでした。';
+      // ストリーミングで応答を取得
+      final responseStream = _aiService!.generateResponseStream(userMessage);
 
-        _updateAIMessage(text);
-      } else {
-        print('Geminiエラー: ${response.body}');
-        _updateAIMessage('エラーが発生しました。ステータス: ${response.statusCode}');
+      String fullResponse = '';
+
+      await for (final chunk in responseStream) {
+        fullResponse += chunk;
+
+        // 既存のメッセージを更新
+        final index =
+            _messages.indexWhere((msg) => msg.id == _currentAIMessageId);
+        if (index != -1) {
+          final updatedMessage = ChatMessage(
+            id: _currentAIMessageId!,
+            text: fullResponse,
+            isUser: false,
+            timestamp: _messages[index].timestamp,
+          );
+          _messages[index] = updatedMessage;
+          notifyListeners();
+        }
       }
+
+      _currentAIMessageId = null;
     } catch (e) {
-      print('REST呼び出しエラー: $e');
-      _updateAIMessage('エラーが発生しました。しばらくしてからお試しください。');
+      print('ストリーミングエラー: $e');
+      _addAIMessage('エラーが発生しました。しばらくしてからもう一度お試しください。');
     } finally {
       _isTyping = false;
       notifyListeners();
     }
-  }
-
-  void _updateAIMessage(String text) {
-    final index = _messages.indexWhere((msg) => msg.id == _currentAIMessageId);
-    if (index != -1) {
-      _messages[index] = ChatMessage(
-        id: _currentAIMessageId!,
-        text: text,
-        isUser: false,
-        timestamp: _messages[index].timestamp,
-      );
-    }
-    _currentAIMessageId = null;
-    notifyListeners();
   }
 
   // AIメッセージを追加（非ストリーミング用）

@@ -8,6 +8,7 @@ from lib.user_context import get_user_id_from_request
 from lib.http_utils import parse_json_body, respond
 from lib.logger_setup import configure_logger
 from lib.validators import validate_and_convert_event_data
+from lib.firestore_utils import serialize_firestore_dict
 
 
 configure_logger()
@@ -30,12 +31,13 @@ class RequestHandler(BaseHTTPRequestHandler):
                 if not doc.exists:
                     respond(self, 404, {"error": "event not found"})
                     return
-                event = {"id": doc.id, **doc.to_dict()}
+                event = {"id": doc.id, **serialize_firestore_dict(doc.to_dict())}
                 respond(self, body=event)
             else:
                 events_ref = get_user_event_ref(db, user_id)
                 events = [
-                    {"id": doc.id, **doc.to_dict()} for doc in events_ref.stream()
+                    {"id": doc.id, **serialize_firestore_dict(doc.to_dict())}
+                    for doc in events_ref.stream()
                 ]
                 respond(self, body=events)
         except Exception as e:

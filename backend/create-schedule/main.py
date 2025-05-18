@@ -4,7 +4,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse, parse_qs
 from lib.firestore_client import get_user_event_ref, get_firestore_client
-from lib.firebase_auth import verify_firebase_token
+from lib.user_context import get_user_id_from_request
 from lib.http_utils import parse_json_body, respond
 from lib.logger_setup import configure_logger
 from lib.validators import validate_and_convert_event_data
@@ -20,7 +20,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         logger.info(f"リクエスト受信: パス={self.path}、ヘッダー={self.headers}")
         try:
-            user_id = verify_firebase_token(self.headers)
+            user_id = get_user_id_from_request(self.headers)
             query = parse_qs(urlparse(self.path).query)
             event_id = query.get("event_id", [None])[0]
 
@@ -51,7 +51,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         )
 
         try:
-            user_id = verify_firebase_token(self.headers)
+            user_id = get_user_id_from_request(self.headers)
             data = parse_json_body(self)
 
             data = validate_and_convert_event_data(data)
@@ -67,7 +67,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_PUT(self):
         try:
-            user_id = verify_firebase_token(self.headers)
+            user_id = get_user_id_from_request(self.headers)
             data = parse_json_body(self)
             event_id = data.get("id")
             if not event_id:
@@ -83,7 +83,7 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def do_DELETE(self):
         try:
-            user_id = verify_firebase_token(self.headers)
+            user_id = get_user_id_from_request(self.headers)
             data = parse_json_body(self)
             event_id = data.get("id")
             if not event_id:

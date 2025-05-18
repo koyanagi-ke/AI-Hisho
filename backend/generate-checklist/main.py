@@ -5,7 +5,7 @@ import json
 
 from lib.logger_setup import configure_logger
 from lib.firestore_client import get_firestore_client
-from .generate_item import generate_item_per_record, update_next_check_due
+from generate_item import generate_item_per_record, update_next_check_due
 
 configure_logger()
 logger = logging.getLogger(__name__)

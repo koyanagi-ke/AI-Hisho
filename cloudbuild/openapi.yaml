@@ -55,53 +55,55 @@ paths:
       x-google-backend:
         address: https://schedules-131464926474.asia-northeast1.run.app
   /api/crud-schedule:
-    post:
-      operationId: postCreateSchedule
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-      responses:
-        "200":
-          description: "Success"
-      x-google-backend:
-        address: https://create-schedule-131464926474.asia-northeast1.run.app
     get:
       operationId: getSchedule
       parameters:
         - name: event_id
           in: query
           required: false
-          schema:
-            type: string
+          type: string
       responses:
         "200":
           description: "Success"
       x-google-backend:
         address: https://create-schedule-131464926474.asia-northeast1.run.app
+
+    post:
+      operationId: postCreateSchedule
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      responses:
+        "200":
+          description: "Created"
+      x-google-backend:
+        address: https://create-schedule-131464926474.asia-northeast1.run.app
+
     put:
       operationId: putUpdateSchedule
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
       responses:
         "200":
           description: "Updated"
       x-google-backend:
         address: https://create-schedule-131464926474.asia-northeast1.run.app
+
     delete:
       operationId: deleteSchedule
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
       responses:
         "200":
           description: "Deleted"

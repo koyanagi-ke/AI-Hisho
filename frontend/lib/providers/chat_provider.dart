@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/chat_message.dart';
-import '../services/ai_service.dart';
+import 'package:firebase_vertexai/firebase_vertexai.dart';
 
 class ChatProvider with ChangeNotifier {
   final List<ChatMessage> _messages = [];
   bool _isTyping = false;
   final Uuid _uuid = const Uuid();
-  AIService? _aiService;
+  GenerativeModel? _model;
   String? _currentAIMessageId;
-
-  Future<void> setApiKey(String apiKey) async {
-    _aiService = AIService(apiKey: apiKey);
-  }
+  String? _conversationSummary;
 
   List<ChatMessage> get messages => _messages;
   bool get isTyping => _isTyping;
 
-  // ユーザーメッセージを追加
+  Future<void> initializeModel() async {
+    _model = FirebaseVertexAI.instance.generativeModel(
+      model: 'gemini-2.0-flash',
+    );
+  }
+
   void addUserMessage(String text) {
     final message = ChatMessage(
       id: _uuid.v4(),
@@ -29,13 +31,11 @@ class ChatProvider with ChangeNotifier {
     _messages.add(message);
     notifyListeners();
 
-    // AIの応答を生成（ストリーミング）
     _generateAIResponseStream(text);
   }
 
-  // AIの応答を生成（ストリーミング）
   Future<void> _generateAIResponseStream(String userMessage) async {
-    if (_aiService == null) {
+    if (_model == null) {
       _addAIMessage('申し訳ありません。AI機能が初期化されていません。');
       return;
     }
@@ -44,51 +44,69 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // 空のAIメッセージを作成
       _currentAIMessageId = _uuid.v4();
-      final message = ChatMessage(
+      _messages.add(ChatMessage(
         id: _currentAIMessageId!,
         text: '',
         isUser: false,
         timestamp: DateTime.now(),
-      );
-      _messages.add(message);
+      ));
       notifyListeners();
 
-      // ストリーミングで応答を取得
-      final responseStream = _aiService!.generateResponseStream(userMessage);
+      if (_conversationSummary == null) {
+        final historyText = _messages.map((m) {
+          final speaker = m.isUser ? 'ユーザー' : 'アシスタント';
+          return '$speaker: ${m.text}';
+        }).join('\n');
+
+        final summaryResponse = await _model!.generateContent(
+            [Content.text('以下の会話の要点を簡潔に日本語でまとめてください:\n$historyText')]);
+
+        _conversationSummary = summaryResponse.text ?? '';
+      }
+
+      final finalPrompt =
+          '''これまでの会話の要点は次の通りです:\n$_conversationSummary\n\n以下がユーザーの最新の質問です:\n$userMessage\n\nこの情報を踏まえて、適切に日本語で回答してください。''';
+
+      final stream = _model!.generateContentStream([Content.text(finalPrompt)]);
 
       String fullResponse = '';
 
-      await for (final chunk in responseStream) {
-        fullResponse += chunk;
+      await for (final response in stream) {
+        if (response.text != null && response.text!.isNotEmpty) {
+          fullResponse += response.text!;
 
-        // 既存のメッセージを更新
-        final index =
-            _messages.indexWhere((msg) => msg.id == _currentAIMessageId);
-        if (index != -1) {
-          final updatedMessage = ChatMessage(
-            id: _currentAIMessageId!,
-            text: fullResponse,
-            isUser: false,
-            timestamp: _messages[index].timestamp,
-          );
-          _messages[index] = updatedMessage;
-          notifyListeners();
+          final index =
+              _messages.indexWhere((msg) => msg.id == _currentAIMessageId);
+          if (index != -1) {
+            _messages[index] = ChatMessage(
+              id: _currentAIMessageId!,
+              text: fullResponse,
+              isUser: false,
+              timestamp: _messages[index].timestamp,
+            );
+            notifyListeners();
+          }
         }
       }
-
+      _isTyping = false;
       _currentAIMessageId = null;
+
+      // 回答後に要点を更新
+      final updateSummaryResponse = await _model!.generateContent([
+        Content.text(
+            '前回の要点：\n$_conversationSummary\n\n以下の新しいやり取りを踏まえて、要点を更新してください:\nユーザー: $userMessage\nアシスタント: $fullResponse')
+      ]);
+
+      _conversationSummary = updateSummaryResponse.text ?? _conversationSummary;
     } catch (e) {
       print('ストリーミングエラー: $e');
       _addAIMessage('エラーが発生しました。しばらくしてからもう一度お試しください。');
     } finally {
-      _isTyping = false;
       notifyListeners();
     }
   }
 
-  // AIメッセージを追加（非ストリーミング用）
   void _addAIMessage(String text) {
     final message = ChatMessage(
       id: _uuid.v4(),
@@ -101,9 +119,9 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // チャット履歴をクリア
   void clearChat() {
     _messages.clear();
+    _conversationSummary = null;
     notifyListeners();
   }
 }

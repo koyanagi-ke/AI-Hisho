@@ -19,7 +19,6 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   bool _isChatOpen = false;
-  static const String _apiKey = String.fromEnvironment('GEMINI_API_KEY');
 
   @override
   void initState() {
@@ -33,22 +32,10 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
       curve: Curves.easeInOut,
     );
 
-    // APIキーを初期化
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeApiKey();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+      await chatProvider.initializeModel();
     });
-  }
-
-  Future<void> _initializeApiKey() async {
-    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-
-    // ビルド時に注入されたAPIキーを使用
-    if (_apiKey.isNotEmpty) {
-      await chatProvider.setApiKey(_apiKey);
-    } else {
-      print('警告: GEMINI_API_KEYが設定されていません。APIキーを指定してビルドしてください。');
-      // エラー処理をここに追加（例：ダイアログ表示など）
-    }
   }
 
   @override
@@ -181,30 +168,11 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
                                 itemBuilder: (context, index) {
                                   final message = chatProvider.messages[
                                       chatProvider.messages.length - 1 - index];
-                                  return _buildMessageBubble(
-                                      message, themeColor);
+                                  return _buildMessageBubble(message,
+                                      themeColor, chatProvider.isTyping);
                                 },
                               ),
                       ),
-
-                      // 入力中インジケーター
-                      if (chatProvider.isTyping)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 16, bottom: 8),
-                          child: Row(
-                            children: [
-                              Image.asset(
-                                assistantCharacter.imagePath,
-                                width: 24,
-                                height: 24,
-                              ),
-                              const SizedBox(width: 8),
-                              const Text('入力中...',
-                                  style: TextStyle(color: Colors.grey)),
-                            ],
-                          ),
-                        ),
-
                       // メッセージ入力フィールド
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -281,7 +249,7 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
                           ),
                         ),
                       ),
-                      // キャラクターアイコン
+                      // AIアシスタントのアイコン
                       Container(
                         width: 60,
                         height: 60,
@@ -306,7 +274,8 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message, Color themeColor) {
+  Widget _buildMessageBubble(
+      ChatMessage message, Color themeColor, bool isTyping) {
     final isUser = message.isUser;
     final time = DateFormat('HH:mm').format(message.timestamp);
 
@@ -336,7 +305,11 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    message.text,
+                    !isUser && isTyping && message.text.isEmpty
+                        ? '...'
+                        : !isUser && !isTyping
+                            ? message.text.trimRight()
+                            : message.text,
                     style: TextStyle(
                       color: isUser ? Colors.white : Colors.black87,
                     ),

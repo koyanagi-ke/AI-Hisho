@@ -40,7 +40,7 @@ steps:
             --region=asia-northeast1 \
             --platform=managed \
             --update-secrets=/etc/secrets/firebase-${svc}/firebase-credentials.json=firebase-credentials:latest \
-            --set-env-vars=GOOGLE_APPLICATION_CREDENTIALS=/secrets/firebase-${svc}/firebase-credentials.json \
+            --set-env-vars=GOOGLE_APPLICATION_CREDENTIALS=/etc/secrets/firebase-${svc}/firebase-credentials.json \
             --quiet &
         done
         wait

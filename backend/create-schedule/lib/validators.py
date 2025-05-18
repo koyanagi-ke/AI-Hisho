@@ -26,13 +26,22 @@ def validate_and_convert_event_data(data: dict) -> dict:
     try:
         for key in ["start_time", "end_time", "notify_at"]:
             if key in data:
-                dt = datetime.fromisoformat(data[key].replace("Z", "+00:00"))
-                if dt.tzinfo is None:
-                    dt = dt.replace(tzinfo=JST)
-                data[key] = dt
+                data[key] = _parse_datetime_field(data[key])
     except Exception:
         raise ValueError(
             "日時フィールドはISO形式（例: 2025-06-01T09:00:00+09:00）で指定してください"
         )
 
     return data
+
+
+def _parse_datetime_field(value: str) -> datetime:
+    """ISO形式の日時文字列をdatetime型に変換（JSTに補正）"""
+    if value.endswith("Z"):
+        # ZはUTCを示す → JSTに変換
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return dt.astimezone(JST)
+    else:
+        dt = datetime.fromisoformat(value)
+        # タイムゾーンがなければ JST を付ける
+        return dt if dt.tzinfo else dt.replace(tzinfo=JST)

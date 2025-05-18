@@ -39,6 +39,7 @@ steps:
             --image=asia-northeast1-docker.pkg.dev/$PROJECT_ID/ai-hisho-backend/$svc:$SHORT_SHA \
             --region=asia-northeast1 \
             --platform=managed \
+            --project=$PROJECT_ID \
             --clear-secrets \
             --clear-env-vars \
             --quiet &

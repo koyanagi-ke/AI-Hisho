@@ -9,7 +9,7 @@ load_dotenv()
 db = google.cloud.firestore.Client(database='hisho-events')
 
 def get_all_players():
-    results = db.collection('events').stream()
+    results = db.collection('users').document('se0e3x3pee4NuXYUlIbf').collection('events').stream()
     data_list = [doc.to_dict() for doc in results]
 
     for doc in results:

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import logging
+import firebase_admin
 from firebase_admin import messaging, credentials, initialize_app
 from .firestore_client import get_firestore_client, get_query_with_and_filters
 from .firestore_utils import serialize_firestore_dict

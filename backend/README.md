@@ -95,6 +95,10 @@
 }
 ```
 
+#### 📤 レスポンス例
+```
+{"status": "updated"}
+```
 ---
 
 ### 🔸 DELETE `/api/crud-schedule`
@@ -107,6 +111,11 @@
 { "id": "pO1acejHhke3HgCSZqLc" }
 ```
 
+#### 📤 レスポンス例
+
+```json
+{"status": "deleted"}
+```
 ---
 
 ## 2. 📲 FCM トークン登録 API

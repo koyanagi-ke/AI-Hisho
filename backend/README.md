@@ -11,6 +11,11 @@
 
 ---
 
+## 🌐 エンドポイント
+`https://ai-hisho-hackathon-gw-1oe6tmh6.an.gateway.dev`
+
+---
+
 ## 1. 🗓 スケジュール管理 API
 
 ### 🔸 POST `/api/crud-schedule`

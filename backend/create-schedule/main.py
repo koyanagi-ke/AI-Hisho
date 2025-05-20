@@ -3,12 +3,18 @@ import os
 import logging
 from datetime import datetime, timezone, timedelta
 from urllib.parse import urlparse, parse_qs
-from lib.firestore_client import get_user_event_ref, get_firestore_client
+from lib.firestore_client import (
+    get_user_event_doc,
+    get_firestore_client,
+    get_event_checklist_collection,
+    get_user_events_collection,
+)
 from lib.user_context import get_user_id_from_request
 from lib.http_utils import parse_json_body, respond
 from lib.logger_setup import configure_logger
 from lib.validators import validate_and_convert_event_data
 from lib.firestore_utils import serialize_firestore_dict
+from lib.gemini_client import infer_address_from_title_and_location
 
 
 configure_logger()
@@ -24,22 +30,28 @@ class RequestHandler(BaseHTTPRequestHandler):
             user_id = get_user_id_from_request(self.headers)
             query = parse_qs(urlparse(self.path).query)
             event_id = query.get("event_id", [None])[0]
+            if not event_id:
+                respond(self, 400, {"error": "event_id は必須です"})
+                return
 
-            if event_id:
-                event_ref = get_user_event_ref(db, user_id, event_id)
-                doc = event_ref.get()
-                if not doc.exists:
-                    respond(self, 404, {"error": "event not found"})
-                    return
-                event = {"id": doc.id, **serialize_firestore_dict(doc.to_dict())}
-                respond(self, body=event)
-            else:
-                events_ref = get_user_event_ref(db, user_id)
-                events = [
-                    {"id": doc.id, **serialize_firestore_dict(doc.to_dict())}
-                    for doc in events_ref.stream()
-                ]
-                respond(self, body=events)
+            event_ref = get_user_event_doc(db, user_id, event_id)
+            doc = event_ref.get()
+            if not doc.exists:
+                respond(self, 404, {"error": "event not found"})
+                return
+            event = {"id": doc.id, **serialize_firestore_dict(doc.to_dict())}
+
+            # チェックリストを取得
+            checklist_ref = get_event_checklist_collection(db, user_id, event_id)
+            checklists = []
+            for item in checklist_ref.stream():
+                checklist_data = serialize_firestore_dict(item.to_dict())
+                checklist_data["id"] = item.id
+                checklists.append(checklist_data)
+
+            event["checklists"] = checklists
+            respond(self, body=event)
+
         except Exception as e:
             logger.exception("GET失敗")
             respond(self, 500, {"error": str(e)})
@@ -52,9 +64,16 @@ class RequestHandler(BaseHTTPRequestHandler):
 
             data = validate_and_convert_event_data(data)
 
+            if "address" not in data or not data["address"]:
+                title = data.get("title", "")
+                location = data.get("location", "")
+                inferred = infer_address_from_title_and_location(title, location)
+                if inferred:
+                    data["address"] = inferred
+
             data["notification_sented"] = False
 
-            event_ref = get_user_event_ref(db, user_id).document()
+            event_ref = get_user_events_collection(db, user_id).document()
             event_ref.set(data)
             respond(self, 200, {"id": event_ref.id})
         except Exception as e:
@@ -73,7 +92,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             # idを取り除いてバリデーション
             data_for_update = {k: v for k, v in data.items() if k != "id"}
 
-            data_for_update = validate_and_convert_event_data(data_for_update)
+            data_for_update = validate_and_convert_event_data(
+                data_for_update, is_update=True
+            )
             event_ref = get_user_event_ref(db, user_id, event_id)
             event_ref.update(data_for_update)
             respond(self, 200, {"status": "updated"})

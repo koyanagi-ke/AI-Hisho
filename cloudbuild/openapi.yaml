@@ -60,7 +60,7 @@ paths:
       parameters:
         - name: event_id
           in: query
-          required: false
+          required: true
           type: string
       responses:
         "200":

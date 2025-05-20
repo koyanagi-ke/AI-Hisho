@@ -23,13 +23,18 @@ class RequestHandler(BaseHTTPRequestHandler):
                 raise ValueError("fcm_token は必須です")
 
             user_ref = db.collection("users").document(user_id)
-            user_data = user_ref.get().to_dict() or {}
-            existing_tokens = user_data.get("fcm_tokens", [])
+            user_doc = user_ref.get()
+            if not user_doc.exists:
+                user_ref.set({"fcm_tokens": [fcm_token]})
+                logger.info(f"[{user_id}] FCMトークンを新規ユーザーとして作成")
+            else:
+                user_data = user_doc.to_dict()
+                existing_tokens = user_data.get("fcm_tokens", [])
 
-            if fcm_token not in existing_tokens:
-                updated_tokens = existing_tokens + [fcm_token]
-                user_ref.update({"fcm_tokens": updated_tokens})
-                logger.info(f"FCMトークン追加: user={user_id}")
+                if fcm_token not in existing_tokens:
+                    updated_tokens = existing_tokens + [fcm_token]
+                    user_ref.update({"fcm_tokens": updated_tokens})
+                    logger.info(f"FCMトークン追加: user={user_id}")
 
             respond(self, 200, {"status": "ok"})
 

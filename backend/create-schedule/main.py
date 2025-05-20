@@ -87,7 +87,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             data = parse_json_body(self)
             event_id = data.get("id")
             if not event_id:
-                raise ValueError("event ID が必要です")
+                respond(self, 400, "event ID が必要です")
+                return
 
             # idを取り除いてバリデーション
             data_for_update = {k: v for k, v in data.items() if k != "id"}
@@ -95,7 +96,10 @@ class RequestHandler(BaseHTTPRequestHandler):
             data_for_update = validate_and_convert_event_data(
                 data_for_update, is_update=True
             )
-            event_ref = get_user_event_ref(db, user_id, event_id)
+            event_ref = get_user_event_doc(db, user_id, event_id)
+            if not event_ref.get().exists:
+                respond(self, 404, {"error": "event not found"})
+                return
             event_ref.update(data_for_update)
             respond(self, 200, {"status": "updated"})
         except Exception as e:
@@ -109,9 +113,13 @@ class RequestHandler(BaseHTTPRequestHandler):
             data = parse_json_body(self)
             event_id = data.get("id")
             if not event_id:
-                raise ValueError("event ID が必要です")
+                respond(self, 400, "event ID が必要です")
+                return
 
-            event_ref = get_user_event_ref(db, user_id, event_id)
+            event_ref = get_user_event_doc(db, user_id, event_id)
+            if not event_ref.get().exists:
+                respond(self, 404, {"error": "event not found"})
+                return
             event_ref.delete()
             respond(self, 200, {"status": "deleted"})
         except Exception as e:

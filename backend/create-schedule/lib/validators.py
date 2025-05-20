@@ -13,7 +13,7 @@ def validate_and_convert_event_data(data: dict, is_update=False) -> dict:
         "address",
         "notify_at",
     }
-    required_fields = ["title", "start_time", "end_time"]
+    required_fields = ["title", "start_time", "end_time", "location"]
 
     extra_keys = set(data.keys()) - allowed_keys
     if extra_keys:

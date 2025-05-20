@@ -1,5 +1,3 @@
-import os
-import json
 import re
 import logging
 from google import genai
@@ -18,73 +16,29 @@ def create_text(contents, model=model):
     return response
 
 
-def extract_json(text: str) -> dict:
-    match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
-    if not match:
-        match = re.search(r"(\{.*?\})", text, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group(1))
-        except json.JSONDecodeError as e:
-            logger.warning(f"JSONデコード失敗: {e}")
-    return {"required": [], "optional": []}
-
-
-def generate_checklist_items(
-    datetime: str,
-    location: str,
-    description: str,
-    existing_items: list[str] = None,
-    weather_info: str = None,
-) -> dict:
-    """
-    Geminiに持ち物を生成させる。
-    :param datetime: イベント日時
-    :param location: 開催場所
-    :param description: 内容
-    :param existing_items: すでにある持ち物名のリスト（省略可）
-    :param is_initial: 初回生成ならTrue、追加生成ならFalse
-    :return: {"required": [...], "optional": [...]}
-    """
-    existing_items = existing_items or []
-    is_initial = not existing_items
-
-    if is_initial:
-        instruction = "必要な持ち物を『必須』と『任意』に分けて教えてください。"
-    else:
-        joined_items = "\\n".join(f"- {item}" for item in existing_items)
-        instruction = f"""以下の持ち物はすでに考慮済みです。それ以外に必要と思われるものを『必須』と『任意』に分けて提案してください。
-（既出の持ち物は絶対に含めないでください）
-
-【すでにある持ち物】
-{joined_items}
-"""
-
-    if weather_info:
-        weather_section = f"また、次のような天気予報情報があります。持ち物の判断に考慮してください：\n{weather_info}\n"
-    else:
-        weather_section = ""
-
+def infer_address_from_title_and_location(title: str, location: str) -> str:
     prompt = f"""
-次のスケジュールに向けて、{instruction}
-{weather_section}
-それぞれの持ち物について、何日前から準備すべきかも整数で指定してください。
+次のイベント情報から、開催地を都道府県レベル（または海外なら都市レベル）で1つだけ推定してください。
+結果は以下のようなJSONで、"address" キーにのみ値を入れて返してください。他のテキストは不要です。
 
-出力はJSON形式のみでお願いします（説明文なし）:
-{{
-  "required": [
-    {{ "item": "持ち物名", "prepare_before": 日数 }}
-  ],
-  "optional": [
-    {{ "item": "持ち物名", "prepare_before": 日数 }}
-  ]
-}}
+例：
+- 東京のイベント → {{ "address": "東京都" }}
+- パリでの出張 → {{ "address": "パリ" }}
 
-日時: {datetime}
+# イベント情報
+タイトル: {title}
 場所: {location}
-内容: {description}
-"""
 
-    response = create_text(prompt)
-    logger.info(f"Gemini応答: {response.text}")
-    return extract_json(response.text)
+出力形式（JSONのみ）:
+"""
+    try:
+        response = create_text(prompt)
+        match = re.search(r'{\s*"address"\s*:\s*"([^"]+)"\s*}', response.text)
+        if match:
+            return match.group(1)
+        else:
+            logger.warning("Geminiの返答から住所を抽出できませんでした")
+            return ""
+    except Exception as e:
+        logger.warning(f"Geminiによる住所推測に失敗: {e}")
+        return ""

@@ -7,12 +7,14 @@ from lib.firestore_client import (
     get_user_event_doc,
     get_firestore_client,
     get_event_checklist_collection,
+    get_user_events_collection,
 )
 from lib.user_context import get_user_id_from_request
 from lib.http_utils import parse_json_body, respond
 from lib.logger_setup import configure_logger
 from lib.validators import validate_and_convert_event_data
 from lib.firestore_utils import serialize_firestore_dict
+from lib.gemini_client import infer_address_from_title_and_location
 
 
 configure_logger()
@@ -62,9 +64,16 @@ class RequestHandler(BaseHTTPRequestHandler):
 
             data = validate_and_convert_event_data(data)
 
+            if "address" not in data or not data["address"]:
+                title = data.get("title", "")
+                location = data.get("location", "")
+                inferred = infer_address_from_title_and_location(title, location)
+                if inferred:
+                    data["address"] = inferred
+
             data["notification_sented"] = False
 
-            event_ref = get_user_event_ref(db, user_id).document()
+            event_ref = get_user_events_collection(db, user_id).document()
             event_ref.set(data)
             respond(self, 200, {"id": event_ref.id})
         except Exception as e:

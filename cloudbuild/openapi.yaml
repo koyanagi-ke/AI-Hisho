@@ -14,6 +14,7 @@ paths:
           description: "Success"
       x-google-backend:
         address: https://weather-advice-131464926474.asia-northeast1.run.app
+        protocol: h2
   /api/sync-schedules:
     post:
       operationId: postSyncSchedules
@@ -22,6 +23,7 @@ paths:
           description: "Success"
       x-google-backend:
         address: https://sync-schedules-131464926474.asia-northeast1.run.app
+        protocol: h2
   /api/generate-checklist:
     post:
       operationId: postGenerateChecklist
@@ -30,6 +32,7 @@ paths:
           description: "Success"
       x-google-backend:
         address: https://generate-checklist-131464926474.asia-northeast1.run.app
+        protocol: h2
   /api/checklist-toggle:
     post:
       operationId: postChecklistToggle
@@ -38,6 +41,7 @@ paths:
           description: "Success"
       x-google-backend:
         address: https://checklist-toggle-131464926474.asia-northeast1.run.app
+        protocol: h2
   /api/message-schedule:
     post:
       operationId: postMessageSchedule
@@ -46,6 +50,7 @@ paths:
           description: "Success"
       x-google-backend:
         address: https://message-schedule-131464926474.asia-northeast1.run.app
+        protocol: h2
   /api/schedules:
     post:
       operationId: postSchedules
@@ -54,6 +59,7 @@ paths:
           description: "Success"
       x-google-backend:
         address: https://schedules-131464926474.asia-northeast1.run.app
+        protocol: h2
   /api/crud-schedule:
     get:
       operationId: getSchedule
@@ -67,7 +73,7 @@ paths:
           description: "Success"
       x-google-backend:
         address: https://create-schedule-131464926474.asia-northeast1.run.app
-
+        protocol: h2
     post:
       operationId: postCreateSchedule
       parameters:
@@ -81,7 +87,7 @@ paths:
           description: "Created"
       x-google-backend:
         address: https://create-schedule-131464926474.asia-northeast1.run.app
-
+        protocol: h2
     put:
       operationId: putUpdateSchedule
       parameters:
@@ -95,7 +101,7 @@ paths:
           description: "Updated"
       x-google-backend:
         address: https://create-schedule-131464926474.asia-northeast1.run.app
-
+        protocol: h2
     delete:
       operationId: deleteSchedule
       parameters:
@@ -109,6 +115,31 @@ paths:
           description: "Deleted"
       x-google-backend:
         address: https://create-schedule-131464926474.asia-northeast1.run.app
+        protocol: h2
+  /api/register-fcm-token:
+    post:
+      operationId: registerFcmToken
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+      responses:
+        "200":
+          description: "Created"
+      x-google-backend:
+        address: https://register-fcm-token-131464926474.asia-northeast1.run.app
+        protocol: h2
+  /api/reminder:
+    get:
+      operationId: getReminder
+      responses:
+        "200":
+          description: "Success"
+      x-google-backend:
+        address: https://reminder-runner-131464926474.asia-northeast1.run.app
+        protocol: h2
 
 securityDefinitions:
   firebase:

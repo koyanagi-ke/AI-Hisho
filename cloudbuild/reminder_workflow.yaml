@@ -1,0 +1,10 @@
+main:
+  steps:
+    - callScheduleReminder:
+        call: http.put
+        args:
+          url: https://reminder-runner-131464926474.asia-northeast1.run.app
+    - callChecklistReminder:
+        call: http.post
+        args:
+          url: https://reminder-runner-131464926474.asia-northeast1.run.app

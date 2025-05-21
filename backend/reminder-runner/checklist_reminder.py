@@ -1,24 +1,50 @@
-from datetime import datetime, timedelta, timezone
 import logging
-import firebase_admin
-from firebase_admin import messaging, credentials, initialize_app
-from .firestore_client import get_firestore_client, get_query_with_and_filters
-from .firestore_utils import serialize_firestore_dict
-from .secret_manager_client import setup_firebase_credentials_env
+from datetime import datetime, timezone, timedelta
+from firebase_admin import messaging
+from lib.firestore_client import (
+    get_firestore_client,
+    get_user_events_collection,
+    get_query_with_and_filters,
+)
+from lib.user_context import get_user_id_from_request
+from lib.firestore_utils import serialize_firestore_dict
+from lib.firebase_auth import firebase_configure
+
 
 logger = logging.getLogger(__name__)
-db = get_firestore_client()
+db = get_firestore_client("hisho-events")
 JST = timezone(timedelta(hours=9))
 
 
-# 認証情報を読み込み & 初期化
-cred_path = setup_firebase_credentials_env()
-if not firebase_admin._apps:
-    cred = credentials.Certificate(cred_path)
-    initialize_app(cred)
+def get_checklist_reminder(self):
+    user_id = get_user_id_from_request(self.headers)
+    today = datetime.now(JST).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    query = get_query_with_and_filters(
+        get_user_events_collection(db, user_id),
+        [
+            ("next_check_due", "<=", today),
+            ("start_time", ">=", today),
+        ],
+    )
+
+    result = []
+    for event_doc in query.stream():
+        event = serialize_firestore_dict(event_doc.to_dict())
+        result.append(
+            {
+                "event_id": event_doc.id,
+                "title": event.get("title"),
+                "start_time": event.get("start_time"),
+                "end_time": event.get("end_time"),
+            }
+        )
+    return result
 
 
-def notify_all_users():
+def post_checklist_reminder():
+    firebase_configure()
+
     today = datetime.now(JST).replace(hour=0, minute=0, second=0, microsecond=0)
     users_ref = db.collection("users")
     success_count = 0
@@ -47,7 +73,7 @@ def notify_all_users():
 
 def _get_pending_events(user_id: str, today: datetime):
     event_query = get_query_with_and_filters(
-        db.collection("users").document(user_id).collection("events"),
+        get_user_events_collection(db, user_id),
         [
             ("next_check_due", "<=", today),
             ("start_time", ">=", today),

@@ -73,7 +73,7 @@ def post_checklist_reminder():
 
 def _get_pending_events(user_id: str, today: datetime):
     event_query = get_query_with_and_filters(
-        db.collection("users").document(user_id).collection("events"),
+        get_user_events_collection(db, user_id),
         [
             ("next_check_due", "<=", today),
             ("start_time", ">=", today),

@@ -6,7 +6,7 @@ from lib.http_utils import respond
 from lib.logger_setup import configure_logger
 
 from checklist_reminder import get_checklist_reminder, post_checklist_reminder
-
+from schedule_reminder import post_schedule_reminder
 
 configure_logger()
 logger = logging.getLogger(__name__)
@@ -24,12 +24,21 @@ class RequestHandler(BaseHTTPRequestHandler):
             respond(self, 500, {"error": str(e)})
 
     def do_POST(self):
-        logger.info(f"Cloud Scheduler POSTバッチ開始")
+        logger.info(f"Cloud Scheduler 持ち物リマインダーバッチ開始")
         try:
             result = post_checklist_reminder()
             respond(self, 200, result)
         except Exception as e:
-            logger.exception("バッチ失敗")
+            logger.exception("持ち物リマインダーバッチ失敗")
+            respond(self, 500, {"error": str(e)})
+
+    def do_PUT(self):
+        logger.info(f"Cloud Scheduler スケジュールリマインダーバッチ開始")
+        try:
+            result = post_schedule_reminder()
+            respond(self, 200, result)
+        except Exception as e:
+            logger.exception("スケジュールリマインダーバッチ失敗")
             respond(self, 500, {"error": str(e)})
 
 

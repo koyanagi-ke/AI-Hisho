@@ -81,8 +81,8 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            bottom: 80,
-            right: 16,
+            bottom: 60,
+            right: 0,
             left: 16,
             child: ScaleTransition(
               scale: _scaleAnimation,
@@ -224,50 +224,39 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
 
         // チャットボットアイコン
         Positioned(
-          bottom: 16,
-          right: 16,
+          bottom: 0,
+          right: 0,
           child: GestureDetector(
             onTap: _toggleChat,
-            child: _isChatOpen
-                ? const SizedBox.shrink()
-                : Stack(
-                    children: [
-                      // 吹き出し
-                      Positioned(
-                        bottom: 60,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Text(
-                            '何か相談したいことはある？',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      // AIアシスタントのアイコン
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Image.asset(assistantCharacter.imagePath),
-                      ),
-                    ],
+            child: Stack(
+              children: [
+                // 吹き出し
+                Positioned(
+                  bottom: 60,
+                  right: 0,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Text(
+                      '何か相談したいことはある？',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
+                ),
+                // AIアシスタントのアイコン
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: const BoxDecoration(
+                      color: Colors.white, shape: BoxShape.circle),
+                  child: Image.asset(assistantCharacter.imagePath),
+                ),
+              ],
+            ),
           ),
         ),
       ],
@@ -279,54 +268,122 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
     final isUser = message.isUser;
     final time = DateFormat('HH:mm').format(message.timestamp);
 
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+    final extractedJson =
+        !isUser && !isTyping ? chatProvider.extractJson(message.text) : null;
+
+    // 表示用テキストからJSON部分を削除
+    final displayText = !isUser && extractedJson != null
+        ? message.text
+            // ```json や ``` を含むコードブロックを除去
+            .replaceAll(RegExp(r'```json[\s\S]*?```'), '')
+            .replaceAll(RegExp(r'```[\s\S]*?```'), '')
+            // JSON本体も除去
+            .replaceAll(RegExp(r'{[\s\S]*?}'), '')
+            .trim()
+        : message.text.trimRight();
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment:
+            isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: [
-          if (!isUser) ...[
-            Image.asset(
-              'assets/images/characters/${Provider.of<PreferencesProvider>(context).preferences.assistantCharacter}.png',
-              width: 30,
-              height: 30,
-            ),
-            const SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: isUser ? themeColor : Colors.grey[200],
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    !isUser && isTyping && message.text.isEmpty
-                        ? '...'
-                        : !isUser && !isTyping
-                            ? message.text.trimRight()
-                            : message.text,
-                    style: TextStyle(
-                      color: isUser ? Colors.white : Colors.black87,
-                    ),
+          Row(
+            mainAxisAlignment:
+                isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isUser) ...[
+                Image.asset(
+                  'assets/images/characters/${Provider.of<PreferencesProvider>(context).preferences.assistantCharacter}.png',
+                  width: 30,
+                  height: 30,
+                ),
+                const SizedBox(width: 8),
+              ],
+              Flexible(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isUser ? themeColor : Colors.grey[200],
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    time,
-                    style: TextStyle(
-                      color: isUser ? Colors.white70 : Colors.grey,
-                      fontSize: 10,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        !isUser && isTyping && message.text.isEmpty
+                            ? '...'
+                            : displayText,
+                        style: TextStyle(
+                          color: isUser ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        time,
+                        style: TextStyle(
+                          color: isUser ? Colors.white70 : Colors.grey,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+              if (isUser) const SizedBox(width: 8),
+            ],
           ),
-          if (isUser) const SizedBox(width: 8),
+
+          // ✅ 提案された予定がある場合にのみ表示されるボタン
+          if (extractedJson != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: themeColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+                icon: const Icon(Icons.event_available),
+                label: const Text('予定に追加する'),
+                onPressed: () {
+                  // 登録処理をここに
+                  print('登録予定: $extractedJson');
+
+                  // 例: 確認ダイアログなど
+                  showDialog(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      title: const Text('予定を追加しますか？'),
+                      content: Text(
+                        'タイトル: ${extractedJson['title']}\n'
+                        '開始: ${extractedJson['start_time']}\n'
+                        '終了: ${extractedJson['end_time']}\n'
+                        '場所: ${extractedJson['location'] ?? '未指定'}',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('キャンセル'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            // TODO: API連携して登録
+                          },
+                          child: const Text('登録'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
         ],
       ),
     );

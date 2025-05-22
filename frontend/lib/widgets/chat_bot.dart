@@ -81,8 +81,8 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
           AnimatedPositioned(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
-            bottom: 80,
-            right: 16,
+            bottom: 60,
+            right: 0,
             left: 16,
             child: ScaleTransition(
               scale: _scaleAnimation,
@@ -224,50 +224,48 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
 
         // チャットボットアイコン
         Positioned(
-          bottom: 16,
-          right: 16,
+          bottom: 0,
+          right: 0,
           child: GestureDetector(
             onTap: _toggleChat,
-            child: _isChatOpen
-                ? const SizedBox.shrink()
-                : Stack(
-                    children: [
-                      // 吹き出し
-                      Positioned(
-                        bottom: 60,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: const Text(
-                            '何か相談したいことはある？',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                      ),
-                      // AIアシスタントのアイコン
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Image.asset(assistantCharacter.imagePath),
+            child: Stack(
+              children: [
+                // 吹き出し
+                Positioned(
+                  bottom: 60,
+                  right: 0,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Text(
+                      '何か相談したいことはある？',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+                // AIアシスタントのアイコン
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
                       ),
                     ],
                   ),
+                  child: Image.asset(assistantCharacter.imagePath),
+                ),
+              ],
+            ),
           ),
         ),
       ],

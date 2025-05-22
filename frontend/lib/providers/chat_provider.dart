@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/chat_message.dart';
 import 'package:firebase_vertexai/firebase_vertexai.dart';
+import 'dart:convert';
 
 class ChatProvider with ChangeNotifier {
   final List<ChatMessage> _messages = [];
@@ -59,21 +60,22 @@ class ChatProvider with ChangeNotifier {
           return '$speaker: ${m.text}';
         }).join('\n');
 
-        final summaryResponse = await _model!.generateContent(
-            [Content.text('以下の会話の要点を簡潔に日本語でまとめてください:\n$historyText')]);
+        final summaryResponse = await _model!
+            .generateContent([Content.text('以下の会話を要約してください:\n$historyText')]);
 
         _conversationSummary = summaryResponse.text ?? '';
       }
 
-      final finalPrompt =
-          '''これまでの会話の要点は次の通りです:\n$_conversationSummary\n\n以下がユーザーの最新の質問です:\n$userMessage\n\nこの情報を踏まえて、適切に日本語で回答してください。''';
+      final prompt =
+          '''これまでの会話の要点は次の通りです:\n$_conversationSummary\n\n以下がユーザーの最新の質問です:\n$userMessage\n\nこの情報を踏まえて、日本語で簡潔に回答してください。予定が含まれる場合は、次のJSONの形式で予定提案を返信の末尾に追加してください。：\n{\"title\":\"string\",\"start_time\":\"YYYY-MM-DDTHH:MM:SS\",\"end_time\":\"YYYY-MM-DDTHH:MM:SS\",\"location\":\"string or null\"}''';
 
-      final stream = _model!.generateContentStream([Content.text(finalPrompt)]);
+      final stream = _model!.generateContentStream([Content.text(prompt)]);
 
       String fullResponse = '';
 
       await for (final response in stream) {
         if (response.text != null && response.text!.isNotEmpty) {
+          print(response.text);
           fullResponse += response.text!;
 
           final index =
@@ -89,13 +91,14 @@ class ChatProvider with ChangeNotifier {
           }
         }
       }
-      _isTyping = false;
-      _currentAIMessageId = null;
 
-      // 回答後に要点を更新
+      _currentAIMessageId = null;
+      _isTyping = false;
+
+      // 要約の更新
       final updateSummaryResponse = await _model!.generateContent([
         Content.text(
-            '前回の要点：\n$_conversationSummary\n\n以下の新しいやり取りを踏まえて、要点を更新してください:\nユーザー: $userMessage\nアシスタント: $fullResponse')
+            '要約:\n$_conversationSummary\n新しい会話:\nユーザー: $userMessage\nアシスタント: $fullResponse\n\nこの内容をもとに要約を更新してください')
       ]);
 
       _conversationSummary = updateSummaryResponse.text ?? _conversationSummary;
@@ -123,5 +126,18 @@ class ChatProvider with ChangeNotifier {
     _messages.clear();
     _conversationSummary = null;
     notifyListeners();
+  }
+
+  Map<String, dynamic>? extractJson(String text) {
+    final regex = RegExp(r'{[\s\S]*?}');
+    final match = regex.firstMatch(text);
+    if (match != null) {
+      try {
+        return json.decode(match.group(0)!);
+      } catch (_) {
+        return null;
+      }
+    }
+    return null;
   }
 }

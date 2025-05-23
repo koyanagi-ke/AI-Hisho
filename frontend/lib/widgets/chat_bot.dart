@@ -1,5 +1,5 @@
-import 'package:app/constants/colors.dart';
 import 'package:app/models/chat_message.dart';
+import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -18,7 +18,7 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
-  bool _isChatOpen = false;
+  OverlayEntry? _overlayEntry;
 
   @override
   void initState() {
@@ -42,238 +42,244 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
   void dispose() {
     _textController.dispose();
     _animationController.dispose();
+    _overlayEntry?.remove();
     super.dispose();
   }
 
   void _toggleChat() {
-    setState(() {
-      _isChatOpen = !_isChatOpen;
-      if (_isChatOpen) {
-        _animationController.forward();
-      } else {
-        _animationController.reverse();
-      }
-    });
-  }
-
-  void _sendMessage() {
-    if (_textController.text.trim().isEmpty) return;
-
-    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-    chatProvider.addUserMessage(_textController.text);
-    _textController.clear();
+    if (_overlayEntry != null) {
+      _overlayEntry!.remove();
+      _overlayEntry = null;
+      _animationController.reverse();
+    } else {
+      _animationController.forward();
+      _overlayEntry = OverlayEntry(
+          builder: (_) => _ChatOverlay(
+                animation: _scaleAnimation,
+                textController: _textController,
+                onClose: _toggleChat,
+              ));
+      Overlay.of(context).insert(_overlayEntry!);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final prefsProvider = Provider.of<PreferencesProvider>(context);
-    final chatProvider = Provider.of<ChatProvider>(context);
     final assistantCharacter =
         CharactersList.getById(prefsProvider.preferences.assistantCharacter);
-    final themeColor =
-        AppColors.themeColors[prefsProvider.preferences.themeColor] ??
-            AppColors.themeColors['orange']!;
 
-    return Stack(
-      children: [
-        // チャットウィンドウ
-        if (_isChatOpen)
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            bottom: 60,
-            right: 0,
-            left: 16,
-            child: ScaleTransition(
-              scale: _scaleAnimation,
-              child: Card(
-                elevation: 8,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Container(
-                  height: MediaQuery.of(context).size.height * 0.6,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
+    return GestureDetector(
+      onTap: _toggleChat,
+      child: Container(
+        width: 60,
+        height: 60,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Image.asset(assistantCharacter.imagePath),
+      ),
+    );
+  }
+}
+
+class _ChatOverlay extends StatelessWidget {
+  final Animation<double> animation;
+  final TextEditingController textController;
+  final VoidCallback onClose;
+
+  const _ChatOverlay({
+    required this.animation,
+    required this.textController,
+    required this.onClose,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ThemeBuilder(builder: (context, primaryColor) {
+      final prefsProvider = Provider.of<PreferencesProvider>(context);
+      final chatProvider = Provider.of<ChatProvider>(context);
+      final assistantCharacter =
+          CharactersList.getById(prefsProvider.preferences.assistantCharacter);
+
+      return Positioned.fill(
+        child: Stack(
+          children: [
+            GestureDetector(
+              onTap: onClose,
+              child: Container(
+                color: Colors.black.withOpacity(0.3),
+              ),
+            ),
+            Positioned(
+              bottom: 112,
+              left: 16,
+              right: 16,
+              child: ScaleTransition(
+                scale: animation,
+                child: Card(
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color: themeColor.withOpacity(0.3), width: 2),
                   ),
-                  child: Column(
-                    children: [
-                      // チャットヘッダー
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: themeColor.withOpacity(0.1),
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(18),
-                            topRight: Radius.circular(18),
+                  child: Container(
+                    width: MediaQuery.of(context).size.width * 0.9,
+                    height: MediaQuery.of(context).size.height * 0.6,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                          color: primaryColor.withOpacity(0.3), width: 2),
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: primaryColor.withOpacity(0.1),
+                            borderRadius: const BorderRadius.only(
+                              topLeft: Radius.circular(18),
+                              topRight: Radius.circular(18),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Image.asset(
+                                assistantCharacter.imagePath,
+                                width: 32,
+                                height: 32,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'AIアシスタント',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryColor,
+                                ),
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                icon: const Icon(Icons.close),
+                                onPressed: onClose,
+                                color: primaryColor,
+                                iconSize: 20,
+                              ),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Image.asset(
-                              assistantCharacter.imagePath,
-                              width: 32,
-                              height: 32,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'AIアシスタント',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: themeColor,
-                              ),
-                            ),
-                            const Spacer(),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: _toggleChat,
-                              color: themeColor,
-                              iconSize: 20,
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // チャットメッセージ一覧
-                      Expanded(
-                        child: chatProvider.messages.isEmpty
-                            ? Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Image.asset(
-                                      assistantCharacter.imagePath,
-                                      width: 80,
-                                      height: 80,
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'こんにちは！何かお手伝いできることはありますか？',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
+                        Expanded(
+                          child: chatProvider.messages.isEmpty
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.asset(
+                                        assistantCharacter.imagePath,
+                                        width: 80,
+                                        height: 80,
                                       ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.all(16),
-                                reverse: true,
-                                itemCount: chatProvider.messages.length,
-                                itemBuilder: (context, index) {
-                                  final message = chatProvider.messages[
-                                      chatProvider.messages.length - 1 - index];
-                                  return _buildMessageBubble(message,
-                                      themeColor, chatProvider.isTyping);
-                                },
-                              ),
-                      ),
-                      // メッセージ入力フィールド
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border(
-                            top: BorderSide(color: Colors.grey[200]!),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: _textController,
-                                decoration: InputDecoration(
-                                  hintText: 'メッセージを入力...',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                    borderSide: BorderSide.none,
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        'こんにちは！何かお手伝いできることはありますか？',
+                                        style:
+                                            TextStyle(color: Colors.grey[600]),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
                                   ),
-                                  filled: true,
-                                  fillColor: Colors.grey[100],
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
+                                )
+                              : ListView.builder(
+                                  padding: const EdgeInsets.all(16),
+                                  reverse: true,
+                                  itemCount: chatProvider.messages.length,
+                                  itemBuilder: (context, index) {
+                                    final message = chatProvider.messages[
+                                        chatProvider.messages.length -
+                                            1 -
+                                            index];
+                                    return _buildMessageBubble(
+                                        message,
+                                        primaryColor,
+                                        chatProvider.isTyping,
+                                        prefsProvider
+                                            .preferences.assistantCharacter);
+                                  },
                                 ),
-                                textInputAction: TextInputAction.send,
-                                onSubmitted: (_) => _sendMessage(),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            CircleAvatar(
-                              backgroundColor: themeColor,
-                              child: IconButton(
-                                icon:
-                                    const Icon(Icons.send, color: Colors.white),
-                                onPressed: _sendMessage,
-                              ),
-                            ),
-                          ],
                         ),
-                      ),
-                    ],
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border(
+                              top: BorderSide(color: Colors.grey[200]!),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: textController,
+                                  decoration: InputDecoration(
+                                    hintText: 'メッセージを入力...',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(20),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    filled: true,
+                                    fillColor: Colors.grey[100],
+                                    contentPadding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                  ),
+                                  textInputAction: TextInputAction.send,
+                                  onSubmitted: (_) =>
+                                      FocusScope.of(context).unfocus(),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              CircleAvatar(
+                                backgroundColor: primaryColor,
+                                child: IconButton(
+                                  icon: const Icon(Icons.send,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    final chatProvider =
+                                        Provider.of<ChatProvider>(context,
+                                            listen: false);
+                                    if (textController.text.trim().isNotEmpty) {
+                                      chatProvider
+                                          .addUserMessage(textController.text);
+                                      textController.clear();
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-
-        // チャットボットアイコン
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: GestureDetector(
-            onTap: _toggleChat,
-            child: Stack(
-              children: [
-                // 吹き出し
-                Positioned(
-                  bottom: 60,
-                  right: 0,
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: const Text(
-                      '何か相談したいことはある？',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ),
-                // AIアシスタントのアイコン
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Image.asset(assistantCharacter.imagePath),
-                ),
-              ],
-            ),
-          ),
+          ],
         ),
-      ],
-    );
+      );
+    });
   }
 
-  Widget _buildMessageBubble(
-      ChatMessage message, Color themeColor, bool isTyping) {
+  Widget _buildMessageBubble(ChatMessage message, Color themeColor,
+      bool isTyping, String assistantCharacter) {
     final isUser = message.isUser;
     final time = DateFormat('HH:mm').format(message.timestamp);
 
@@ -286,7 +292,7 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
         children: [
           if (!isUser) ...[
             Image.asset(
-              'assets/images/characters/${Provider.of<PreferencesProvider>(context).preferences.assistantCharacter}.png',
+              'assets/images/characters/$assistantCharacter.png',
               width: 30,
               height: 30,
             ),

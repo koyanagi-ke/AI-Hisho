@@ -1,30 +1,24 @@
-import 'package:app/widgets/chat_bot.dart';
+import 'package:app/widgets/common/common_layout.dart';
+import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../constants/colors.dart';
-import '../providers/preferences_provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final prefsProvider = Provider.of<PreferencesProvider>(context);
-    final themeColor = prefsProvider.preferences.themeColor;
-    final primaryColor =
-        AppColors.themeColors[themeColor] ?? AppColors.themeColors['orange']!;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('2025年5月9日'),
-        centerTitle: true,
-        leading: Icon(Icons.chevron_left, color: primaryColor),
-        actions: [
-          Icon(Icons.chevron_right, color: primaryColor),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: SingleChildScrollView(
+    return ThemeBuilder(builder: (context, primaryColor) {
+      return CommonLayout(
+        appBar: AppBar(
+          title: const Text('2025年5月9日'),
+          centerTitle: true,
+          leading: Icon(Icons.chevron_left, color: primaryColor),
+          actions: [
+            Icon(Icons.chevron_right, color: primaryColor),
+            const SizedBox(width: 16),
+          ],
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -73,54 +67,8 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-      floatingActionButton: const ChatBot(),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      //   floatingActionButton: FloatingActionButton(
-      //     onPressed: () {},
-      //     backgroundColor: primaryColor,
-      //     child: const Icon(Icons.add),
-      //   ),
-      //   floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                icon: Icons.calendar_today,
-                label: 'スケジュール',
-                isSelected: true,
-                primaryColor: primaryColor,
-              ),
-              _buildNavItem(
-                icon: Icons.calendar_month,
-                label: 'カレンダー',
-                isSelected: false,
-                primaryColor: primaryColor,
-              ),
-              const SizedBox(width: 40), // FAB用のスペース
-              _buildNavItem(
-                icon: Icons.cloud,
-                label: '天気',
-                isSelected: false,
-                primaryColor: primaryColor,
-              ),
-              _buildNavItem(
-                icon: Icons.person,
-                label: 'プロフィール',
-                isSelected: false,
-                primaryColor: primaryColor,
-                onTap: () => Navigator.of(context).pushNamed('/profile'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildWeatherCard(BuildContext context, Color primaryColor) {

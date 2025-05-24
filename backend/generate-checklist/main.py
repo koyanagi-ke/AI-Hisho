@@ -5,6 +5,7 @@ import json
 
 from lib.logger_setup import configure_logger
 from lib.firestore_client import get_firestore_client
+from generate_all_item import get_all_records
 from generate_item import generate_item_per_record, update_next_check_due
 
 configure_logger()
@@ -41,6 +42,11 @@ class RequestHandler(BaseHTTPRequestHandler):
         logger.info(
             f"PUTリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={put_data.decode('utf-8')}"
         )
+
+        records = get_all_records()
+        for event_ref in records:
+            result = generate_item_per_record(event_ref)
+            update_next_check_due(event_ref, result)
 
         self.send_response(200)
         self.send_header("Content-type", "text/plain")

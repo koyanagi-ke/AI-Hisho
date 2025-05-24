@@ -12,6 +12,7 @@ client = genai.Client()
 model = "gemini-2.0-flash"
 JST = timezone(timedelta(hours=9))
 
+
 def create_text(contents, model=model):
     response = client.models.generate_content(model=model, contents=contents)
     return response
@@ -42,7 +43,9 @@ def extract_event_schedule(chat_history: list[dict]) -> dict:
     """
     now = datetime.now(JST)
     today_str = now.strftime("%Y-%m-%d")
-    weekday_jp = ["月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日", "日曜日"][now.weekday()]
+    weekday_jp = ["月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日", "日曜日"][
+        now.weekday()
+    ]
 
     system_instruction = f"""今日は {today_str}（{weekday_jp}）です。
 
@@ -56,18 +59,15 @@ def extract_event_schedule(chat_history: list[dict]) -> dict:
 【出力形式】
 ※以下はあくまで構造の例です。日付や時刻は、会話の内容に基づいて正しく推論してください。説明文や補足は一切不要です。必ず次のようなJSONのみを返してください：
 
-{
+{{
   "title": "イベントのタイトル",
   "start_time": "2025-06-01T09:00:00+09:00",
   "end_time": "2025-06-01T14:00:00+09:00",
   "location": "イベントの場所"
-}
+}}
 """
 
-    prompt = [
-        {"role": "user", "parts": [system_instruction]},
-        *chat_history
-    ]
+    prompt = [{"role": "user", "parts": [system_instruction]}, *chat_history]
 
     response = create_text(prompt)
     return extract_json(response.text)

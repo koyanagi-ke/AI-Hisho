@@ -57,7 +57,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             if not event_id:
                 raise ValueError("eventIdが必要です")
             record = get_trigger_record(user_id, event_id)
-            update_weather_for_trigger_record(record)
+            update_weather_for_trigger_record(user_id, event_id, record)
             logger.info("正常終了")
         except Exception as e:
             logger.error(f"エラー発生：{str(e)}")

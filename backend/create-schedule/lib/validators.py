@@ -1,4 +1,5 @@
 from datetime import datetime, timezone, timedelta
+from .exceptions import ValidationError
 
 JST = timezone(timedelta(hours=9))
 
@@ -17,19 +18,19 @@ def validate_and_convert_event_data(data: dict, is_update=False) -> dict:
 
     extra_keys = set(data.keys()) - allowed_keys
     if extra_keys:
-        raise ValueError(f"不正なキーが含まれています: {', '.join(extra_keys)}")
+        raise ValidationError(f"不正なキーが含まれています: {', '.join(extra_keys)}")
 
     if not is_update:
         for field in required_fields:
             if field not in data:
-                raise ValueError(f"'{field}' は必須です")
+                raise ValidationError(f"'{field}' は必須です")
 
     try:
         for key in ["start_time", "end_time", "notify_at"]:
             if key in data:
                 data[key] = _parse_datetime_field(data[key])
     except Exception:
-        raise ValueError(
+        raise ValidationError(
             "日時フィールドはISO形式（例: 2025-06-01T09:00:00+09:00）で指定してください"
         )
 

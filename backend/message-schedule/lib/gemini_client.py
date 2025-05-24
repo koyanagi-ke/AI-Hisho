@@ -1,6 +1,7 @@
 import re
 import logging
 from google import genai
+import tiktoken
 import json
 from datetime import datetime, timezone, timedelta
 from .secret_manager_client import get_gemini_api_key
@@ -11,6 +12,9 @@ get_gemini_api_key()
 client = genai.Client()
 model = "gemini-2.0-flash"
 JST = timezone(timedelta(hours=9))
+
+MAX_TOKENS = 1_048_576
+RESERVED_TOKENS = 2000  # システム文 + 生成余地を残す
 
 
 def create_text(contents, model=model):
@@ -66,8 +70,37 @@ def extract_event_schedule(chat_history: list[dict]) -> dict:
   "location": "イベントの場所"
 }}
 """
+    trimmed_history = truncate_chat_history(system_instruction, chat_history)
 
-    prompt = [{"role": "user", "parts": [system_instruction]}, *chat_history]
+    prompt = [
+        {"role": "user", "parts": [{"text": system_instruction}]},
+        *trimmed_history,
+    ]
 
     response = create_text(prompt)
     return extract_json(response.text)
+
+
+def estimate_tokens(text: str) -> int:
+    # GPT-4系互換の推定器（tiktoken使用例、環境によっては google.generativeai の token_count を使ってください）
+    encoding = tiktoken.get_encoding("cl100k_base")
+    return len(encoding.encode(text))
+
+
+def truncate_chat_history(
+    system_instruction: str, chat_history: list[dict]
+) -> list[dict]:
+    total_tokens = estimate_tokens(system_instruction)
+    result = []
+
+    # 最新の発言から逆順で追加（古いものを切る）
+    for message in reversed(chat_history):
+        message_tokens = sum(
+            estimate_tokens(part.get("text", "")) for part in message.get("parts", [])
+        )
+        if total_tokens + message_tokens > MAX_TOKENS - RESERVED_TOKENS:
+            break
+        result.insert(0, message)
+        total_tokens += message_tokens
+
+    return result

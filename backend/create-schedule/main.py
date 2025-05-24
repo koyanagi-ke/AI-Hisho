@@ -15,6 +15,7 @@ from lib.logger_setup import configure_logger
 from lib.validators import validate_and_convert_event_data
 from lib.firestore_utils import serialize_firestore_dict
 from lib.gemini_client import infer_address_from_title_and_location
+from lib.exceptions import ValidationError
 
 
 configure_logger()
@@ -76,7 +77,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             event_ref = get_user_events_collection(db, user_id).document()
             event_ref.set(data)
             respond(self, 200, {"id": event_ref.id})
-        except ValueError as ve:
+        except ValidationError as ve:
             logger.warning(f"⚠️ Validation failed: {ve}")
             respond(self, status=400, body={"error": str(ve)})
         except Exception as e:
@@ -105,7 +106,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 return
             event_ref.update(data_for_update)
             respond(self, 200, {"status": "updated"})
-        except ValueError as ve:
+        except ValidationError as ve:
             logger.warning(f"⚠️ Validation failed: {ve}")
             respond(self, status=400, body={"error": str(ve)})
         except Exception as e:

@@ -1,4 +1,4 @@
-# lib/validators.py
+from .exceptions import ValidationError
 
 
 def validate_exact_fields(data: dict, allowed_fields: list[str]):
@@ -16,6 +16,6 @@ def validate_exact_fields(data: dict, allowed_fields: list[str]):
     extra = [field for field in data if field not in allowed_fields]
 
     if missing:
-        raise ValueError(f"Missing required field(s): {', '.join(missing)}")
+        raise ValidationError(f"Missing required field(s): {', '.join(missing)}")
     if extra:
-        raise ValueError(f"Unexpected field(s): {', '.join(extra)}")
+        raise ValidationError(f"Unexpected field(s): {', '.join(extra)}")

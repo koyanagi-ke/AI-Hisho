@@ -14,6 +14,7 @@ from lib.firestore_client import (
 )
 from lib.firestore_utils import serialize_firestore_dict
 from lib.validators import validate_exact_fields
+from lib.exceptions import ValidationError
 
 # ログ設定
 configure_logger()
@@ -66,7 +67,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 respond(self, 404, {"error": "event not found"})
                 return
             event_data = event_doc.to_dict()
-            start_date = ensure_jst_datetime(event_data.get("start_date"))
+            start_date = ensure_jst_datetime(event_data.get("start_time"))
 
             # 未チェック項目を取得して next_check_due を再計算
             checklist_collection = get_event_checklist_collection(db, user_id, event_id)
@@ -95,7 +96,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 status=200,
                 body={"status": "success", **serialize_firestore_dict(response_data)},
             )
-        except ValueError as ve:
+        except ValidationError as ve:
             logger.warning(f"⚠️ Validation failed: {ve}")
             respond(self, status=400, body={"error": str(ve)})
         except Exception as e:

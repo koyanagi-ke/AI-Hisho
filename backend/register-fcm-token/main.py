@@ -7,6 +7,7 @@ from lib.firestore_client import (
 )
 from lib.user_context import get_user_id_from_request
 from lib.http_utils import parse_json_body, respond
+from lib.exceptions import ValidationError
 
 configure_logger()
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             body = parse_json_body(self)
             fcm_token = body.get("fcm_token")
             if not fcm_token:
-                raise ValueError("fcm_token は必須です")
+                raise ValidationError("fcm_token は必須です")
 
             user_ref = db.collection("users").document(user_id)
             user_doc = user_ref.get()
@@ -37,6 +38,10 @@ class RequestHandler(BaseHTTPRequestHandler):
                     logger.info(f"FCMトークン追加: user={user_id}")
 
             respond(self, 200, {"status": "ok"})
+
+        except ValidationError as ve:
+            logger.warning(f"⚠️ Validation failed: {ve}")
+            respond(self, status=400, body={"error": str(ve)})
 
         except Exception as e:
             logger.exception("FCMトークン登録失敗")

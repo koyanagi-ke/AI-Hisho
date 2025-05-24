@@ -44,7 +44,8 @@ class RequestHandler(BaseHTTPRequestHandler):
         )
 
         records = get_all_records()
-        for event_ref in records:
+        for snapshot in records:
+            event_ref = snapshot.reference
             result = generate_item_per_record(event_ref)
             update_next_check_due(event_ref, result)
 

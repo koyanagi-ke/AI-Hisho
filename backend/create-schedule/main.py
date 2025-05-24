@@ -76,6 +76,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             event_ref = get_user_events_collection(db, user_id).document()
             event_ref.set(data)
             respond(self, 200, {"id": event_ref.id})
+        except ValueError as ve:
+            logger.warning(f"⚠️ Validation failed: {ve}")
+            respond(self, status=400, body={"error": str(ve)})
         except Exception as e:
             logger.exception("POST失敗")
             respond(self, 500, {"error": str(e)})
@@ -102,6 +105,9 @@ class RequestHandler(BaseHTTPRequestHandler):
                 return
             event_ref.update(data_for_update)
             respond(self, 200, {"status": "updated"})
+        except ValueError as ve:
+            logger.warning(f"⚠️ Validation failed: {ve}")
+            respond(self, status=400, body={"error": str(ve)})
         except Exception as e:
             logger.exception("PUT失敗")
             respond(self, 500, {"error": str(e)})

@@ -21,19 +21,22 @@ def validate_exact_fields(data: dict, allowed_fields: list[str]):
         raise ValidationError(f"Unexpected field(s): {', '.join(extra)}")
 
 
-def validate_schedule_request(data: dict):
+def validate_gemini_messages(data: dict):
     messages = data.get("message")
     if not isinstance(messages, list):
         raise ValidationError("message must be a list")
 
     for i, msg in enumerate(messages):
         if not isinstance(msg, dict):
-            raise ValidationError(f"Each message must be a dictionary (index {i})")
+            raise ValidationError(f"Message at index {i} must be a dict")
         if "role" not in msg or "parts" not in msg:
             raise ValidationError(
                 f"Each message must contain 'role' and 'parts' (index {i})"
             )
-        if not isinstance(msg["parts"], list) or not all(
-            isinstance(p, str) for p in msg["parts"]
-        ):
-            raise ValidationError(f"'parts' must be a list of strings (index {i})")
+        if not isinstance(msg["parts"], list):
+            raise ValidationError(f"'parts' must be a list (index {i})")
+        for part in msg["parts"]:
+            if not isinstance(part, dict) or "text" not in part:
+                raise ValidationError(
+                    f"Each part must be a dict with 'text' (index {i})"
+                )

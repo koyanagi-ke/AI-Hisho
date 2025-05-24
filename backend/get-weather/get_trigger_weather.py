@@ -42,7 +42,7 @@ def update_weather_for_trigger_record(user_id, event_id, record_dict):
     start_time = record_dict.get("start_time")
     address = record_dict.get("address")
 
-    if (not address) and (not start_time) and (start_time <= target_day):
+    if address and start_time and (start_time <= target_day):
         forecast = fetch_weather_for_document(record_dict, api_key)
         filtered_forecast = _filter_forecast_by_dates(forecast, start_time)
         update_document_weather(
@@ -51,6 +51,10 @@ def update_weather_for_trigger_record(user_id, event_id, record_dict):
             filtered_forecast,
         )
         logger.info(f"{event_id} の天気情報を更新しました")
+    else:
+        logger.info(
+            "addressもしくはstarttimeが空のため天気情報の取得としませんでした。"
+        )
 
 
 def _filter_forecast_by_dates(forecast: dict, start_time: datetime):

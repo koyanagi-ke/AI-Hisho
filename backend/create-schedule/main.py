@@ -127,6 +127,15 @@ class RequestHandler(BaseHTTPRequestHandler):
             if not event_ref.get().exists:
                 respond(self, 404, {"error": "event not found"})
                 return
+
+            checklist_collection = get_event_checklist_collection(db, user_id, event_id)
+
+            # チェックリストのサブコレクションを明示的に削除
+            checklist_docs = checklist_collection.stream()
+            for doc in checklist_docs:
+                doc.reference.delete()
+
+            # イベント本体のドキュメントを削除
             event_ref.delete()
             respond(self, 200, {"status": "deleted"})
         except Exception as e:

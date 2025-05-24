@@ -4,7 +4,6 @@ import logging
 from lib.firestore_client import (
     get_firestore_client,
     get_query_with_and_filters,
-    update_document_weather,
 )
 
 logger = logging.getLogger()

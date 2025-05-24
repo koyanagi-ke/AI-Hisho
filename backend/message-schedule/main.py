@@ -1,39 +1,42 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import logging
 import os
+import logging
+from datetime import datetime, timezone, timedelta
 
-# ロガーインスタンス作成
+from lib.logger_setup import configure_logger
+from lib.http_utils import parse_json_body, respond
+from lib.validators import validate_exact_fields, validate_schedule_request
+from lib.gemini_client import extract_event_schedule, extract_json
+from lib.exceptions import ValidationError
+
+# JST定義
+JST = timezone(timedelta(hours=9))
+
+# ログ設定
+configure_logger()
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-
-# 標準出力にログを出すハンドラー
-handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
 
 
 class RequestHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        logger.info(f"リクエスト受信: パス={self.path}、ヘッダー={self.headers}")
-
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(b"OK")
-
     def do_POST(self):
-        content_length = int(self.headers.get("Content-Length", 0))
-        post_data = self.rfile.read(content_length)
+        try:
+            data = parse_json_body(self)
+            validate_exact_fields(data, ["message"])
+            validate_schedule_request(data)
 
-        logger.info(
-            f"POSTリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={post_data.decode('utf-8')}"
-        )
+            messages = data["message"]
 
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(b"OK")
+            result = extract_event_schedule(messages)
+
+            respond(self, status=200, body=result)
+
+        except ValidationError as ve:
+            logger.warning(f"⚠️ Validation error: {ve}")
+            respond(self, status=400, body={"error": str(ve)})
+
+        except Exception as e:
+            logger.exception("❌ Unexpected server error")
+            respond(self, status=500, body={"error": "Internal server error"})
 
 
 def run():

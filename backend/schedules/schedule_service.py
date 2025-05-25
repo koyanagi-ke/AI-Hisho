@@ -15,9 +15,10 @@ def fetch_schedules(user_id, start_time, end_time):
 def format_schedules(records):
     return [
         {
-            "start_time": r["start_time"],
             "title": r["title"],
-            "analysis": r["analysis"]
+            "start_time": r["start_time"],
+            "end_time": r["end_time"]
+            "location": r["location"]
         }
         for r in records
     ]

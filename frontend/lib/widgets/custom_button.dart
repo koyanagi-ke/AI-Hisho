@@ -8,6 +8,7 @@ class CustomButton extends StatelessWidget {
   final bool isPrimary;
   final String? themeColor;
   final bool isFullWidth;
+  final bool isLoading;
 
   const CustomButton({
     super.key,
@@ -16,6 +17,7 @@ class CustomButton extends StatelessWidget {
     this.isPrimary = true,
     this.themeColor = 'orange',
     this.isFullWidth = true,
+    this.isLoading = false,
   });
 
   @override
@@ -24,23 +26,36 @@ class CustomButton extends StatelessWidget {
       final Color _primaryColor =
           AppColors.themeColors[themeColor] ?? primaryColor;
 
+      final buttonColor =
+          isLoading ? _primaryColor.withOpacity(0.3) : _primaryColor;
+
       return SizedBox(
         width: isFullWidth ? double.infinity : null,
         child: isPrimary
             ? ElevatedButton(
-                onPressed: onPressed,
+                onPressed: isLoading ? null : onPressed,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _primaryColor,
+                  backgroundColor: buttonColor,
                   foregroundColor: AppColors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Text(text),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : Text(text),
               )
             : OutlinedButton(
-                onPressed: onPressed,
+                onPressed: isLoading ? null : onPressed,
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.gray700,
                   backgroundColor: AppColors.gray200,
@@ -49,7 +64,17 @@ class CustomButton extends StatelessWidget {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Text(text),
+                child: isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.grey),
+                        ),
+                      )
+                    : Text(text),
               ),
       );
     });

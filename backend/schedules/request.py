@@ -1,0 +1,18 @@
+import requests
+import json
+
+# エンドポイント
+url = 'https://ai-hisho-hackathon-gw-1oe6tmh6.an.gateway.dev/api/schedulesにPOSTリクエストを送る'
+api_token = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImZlNjVjY2I4ZWFkMGJhZWY1ZmQzNjE5NWQ2NTI4YTA1NGZiYjc2ZjMiLCJ0eXAiOiJKV1QifQ.eyJwcm92aWRlcl9pZCI6ImFub255bW91cyIsImlzcyI6Imh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9haS1oaXNoby00NTgzMTciLCJhdWQiOiJhaS1oaXNoby00NTgzMTciLCJhdXRoX3RpbWUiOjE3NDgxODM5NDksInVzZXJfaWQiOiJuNmw3Q3BYNVNlTWhocUd2eEhhWEJEcm15T0YzIiwic3ViIjoibjZsN0NwWDVTZU1oaHFHdnhIYVhCRHJteU9GMyIsImlhdCI6MTc0ODE4Mzk0OSwiZXhwIjoxNzQ4MTg3NTQ5LCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic2lnbl9pbl9wcm92aWRlciI6ImFub255bW91cyJ9fQ.nws9vEOsQZV8xZQDGI4UIb3JfvRBGM3AvyACCcEvWE5d473_x2MVai4nBQkYobYDprCwxsugJViTAi7_xp6KZaS_Ux0p8ZxNpuh2TQOEkdmkpMIjGSCfRuOklHqVsM30t0NvoJUMxxmIm4vxBi5qNaCIixSauZvH-y6hvZzjtn1BviJS_ULxnDzcDf2t0b2rXPKqvt_gNIC4qPxXAnY85o3VUDs-S0XdnoYMVS7j4aoXB2o6JF5ZUXTmGiwxdkoSV7aPKLC3A4i_Y3jIBVzVbhM9GzFI6mexAfieITjcgQ_-RDFCiszXEOH9GKWSRVzj1jyRArUemr_jTttXzLcj4w" 
+headers = {
+    "Content-Type": "application/json",
+    "x-api-key": api_token 
+}
+
+data = {}
+
+# リクエスト
+res = requests.post(url, json=data)
+values = json.loads(res.text)
+
+print(values)

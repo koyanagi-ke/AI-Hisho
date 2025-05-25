@@ -37,20 +37,25 @@ class RequestHandler(BaseHTTPRequestHandler):
 
         try:
             user_id = get_user_id_from_request(self.headers)
-            logger.info(f"user_id取得成功: {user_id}")
 
             body = parse_json_body(self)
-            logger.info(f"リクエストボディ: {body}")
             start_time = body.get("start_time")
             end_time = body.get("end_time")
 
-            if start_time and end_time:
-                records = fetch_schedules(user_id, start_time, end_time)
-            else:
-                records = fetch_schedules(user_id)  # 期間指定なし＝全件
+            # DB検索
+            records = get_schedules_by_user_and_period(user_id, start_time, end_time)
 
-            logger.info(f"スケジュール取得結果: {records}")
-            result = format_schedules(records)
+            result = []
+            for rec in records:
+                item = {
+                    "title": rec.get("title"),
+                    "start_time": rec.get("start_time"),
+                    "end_time": rec.get("end_time"),
+                    "location": rec.get("location"),
+                }
+                result.append(item)
+
+            #レスポンス
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()

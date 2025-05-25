@@ -12,9 +12,17 @@ def generate_item_per_record(event_ref):
     checklist_ref = event_ref.collection("checklists")
     weather_info = event.get("weather_info")
 
-    result = generate_checklist_items(
-        datetime, location, description, weather_info=weather_info
-    )
+    docs = list(checklist_ref.stream())
+
+    if not docs:
+        result = generate_checklist_items(
+            datetime, location, description, weather_info=weather_info
+        )
+    else:
+        items = [doc.to_dict().get("item") for doc in docs if "item" in doc.to_dict()]
+        result = generate_checklist_items(
+            datetime, location, description, items, weather_info
+        )
 
     for category in ["required", "optional"]:
         for item in result.get(category, []):

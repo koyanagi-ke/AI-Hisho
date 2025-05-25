@@ -2,10 +2,11 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 import os
 import json
+import google.cloud.firestore
 
 from .user_context import get_user_id_from_request
 from .http_utils import parse_json_body
-from .schedule_service import fetch_schedules, format_schedules
+from .db_access import get_schedules_by_user_and_period 
 
 # ロガーインスタンス作成
 logger = logging.getLogger(__name__)
@@ -16,7 +17,6 @@ handler = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):

@@ -6,7 +6,7 @@ class CustomButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
   final bool isPrimary;
-  final String? themeColor;
+  final String themeColor;
   final bool isFullWidth;
   final bool isLoading;
 

@@ -1,28 +1,23 @@
+import 'package:app/widgets/common/common_layout.dart';
+import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../constants/colors.dart';
-import '../providers/preferences_provider.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final prefsProvider = Provider.of<PreferencesProvider>(context);
-    final themeColor = prefsProvider.preferences.themeColor;
-    final primaryColor =
-        AppColors.themeColors[themeColor] ?? AppColors.themeColors['orange']!;
-    final lightColor = primaryColor.withOpacity(0.1);
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('プロフィール'),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: primaryColor),
-          onPressed: () => Navigator.of(context).pop(),
+    return ThemeBuilder(builder: (context, primaryColor) {
+      final lightColor = primaryColor.withOpacity(0.1);
+      return CommonLayout(
+        appBar: AppBar(
+          title: const Text('プロフィール'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: primaryColor),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -35,53 +30,8 @@ class ProfileScreen extends StatelessWidget {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(
-                icon: Icons.calendar_today,
-                label: 'スケジュール',
-                isSelected: false,
-                primaryColor: primaryColor,
-                onTap: () =>
-                    Navigator.of(context).pushReplacementNamed('/home'),
-              ),
-              _buildNavItem(
-                icon: Icons.calendar_month,
-                label: 'カレンダー',
-                isSelected: false,
-                primaryColor: primaryColor,
-              ),
-              const SizedBox(width: 40), // FAB用のスペース
-              _buildNavItem(
-                icon: Icons.cloud,
-                label: '天気',
-                isSelected: false,
-                primaryColor: primaryColor,
-              ),
-              _buildNavItem(
-                icon: Icons.person,
-                label: 'プロフィール',
-                isSelected: true,
-                primaryColor: primaryColor,
-              ),
-            ],
-          ),
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        backgroundColor: primaryColor,
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-    );
+      );
+    });
   }
 
   Widget _buildProfileCard(

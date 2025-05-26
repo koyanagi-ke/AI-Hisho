@@ -4,9 +4,9 @@ import os
 import json
 import google.cloud.firestore
 
-from .user_context import get_user_id_from_request
-from .http_utils import parse_json_body
-from .db_access import get_schedules_by_user_and_period 
+from user_context import get_user_id_from_request
+from http_utils import parse_json_body
+from db_access import get_schedules_by_user_and_period 
 
 # ロガーインスタンス作成
 logger = logging.getLogger(__name__)

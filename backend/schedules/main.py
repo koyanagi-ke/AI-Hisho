@@ -28,11 +28,6 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"OK")
 
     def do_POST(self):
-        
-        logger.info(
-            f"POSTリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={post_data.decode('utf-8')}"
-        )
-
         try:
             user_id = get_user_id_from_request(self.headers)
 

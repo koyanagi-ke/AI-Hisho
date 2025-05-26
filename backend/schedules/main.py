@@ -1,6 +1,12 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
 import os
+import json
+import google.cloud.firestore
+
+from .user_context import get_user_id_from_request
+from .http_utils import parse_json_body
+from .db_access import get_schedules_by_user_and_period 
 
 # ロガーインスタンス作成
 logger = logging.getLogger(__name__)
@@ -11,7 +17,6 @@ handler = logging.StreamHandler()
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 handler.setFormatter(formatter)
 logger.addHandler(handler)
-
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -30,10 +35,37 @@ class RequestHandler(BaseHTTPRequestHandler):
             f"POSTリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={post_data.decode('utf-8')}"
         )
 
-        self.send_response(200)
-        self.send_header("Content-type", "text/plain")
-        self.end_headers()
-        self.wfile.write(b"OK")
+        try:
+            user_id = get_user_id_from_request(self.headers)
+
+            body = parse_json_body(self)
+            start_time = body.get("start_time")
+            end_time = body.get("end_time")
+
+            # DB検索
+            records = get_schedules_by_user_and_period(user_id, start_time, end_time)
+
+            result = []
+            for rec in records:
+                item = {
+                    "title": rec.get("title"),
+                    "start_time": rec.get("start_time"),
+                    "end_time": rec.get("end_time"),
+                    "location": rec.get("location"),
+                }
+                result.append(item)
+
+            #レスポンス
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b"OK")
+        except Exception as e:
+            logger.error(f"エラー発生: {e}")
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
 
 
 def run():

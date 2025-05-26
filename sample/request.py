@@ -9,12 +9,12 @@ headers = {
 }
 
 data = {
-    "start_time": "2025-05-01T0:00:00",
+    "start_time": "2025-05-01T00:00:00",
     "end_time": "2025-05-31T23:59:59"
 }
 
 # リクエスト
-res = requests.post(url, json=data)
+res = requests.post(url, headers=headers, json=data)
 values = json.loads(res.text)
 
 print(values)

@@ -52,7 +52,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b"OK")
+            self.wfile.write(json.dumps(result).encode("utf-8"))
         except Exception as e:
             logger.error(f"エラー発生: {e}")
             self.send_response(500)

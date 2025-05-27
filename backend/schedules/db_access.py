@@ -2,7 +2,7 @@ import google.cloud.firestore
 from google.cloud.firestore_v1.base_query import FieldFilter, BaseCompositeFilter
 
 def get_schedules_by_user_and_period(user_id, start_time, end_time):
-    db = google.cloud.firestore.Client()
+    db = google.cloud.firestore.Client(database='hisho-events')
     collection = db.collection('users').document(user_id).collection('events')
     
     filters = [

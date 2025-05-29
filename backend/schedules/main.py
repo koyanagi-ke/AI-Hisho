@@ -3,6 +3,7 @@ import logging
 import os
 import json
 import google.cloud.firestore
+from datetime import datetime
 
 from user_context import get_user_id_from_request
 from http_utils import parse_json_body
@@ -18,6 +19,16 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+def to_iso(dt):
+    # Firestore Timestamp型やdatetime型をISO8601文字列に変換
+    if hasattr(dt, "isoformat"):
+        return dt.isoformat()
+    try:
+        # google.cloud.firestore_v1._helpers.Timestampの場合
+        return dt.ToDatetime().isoformat()
+    except Exception:
+        return str(dt)
+
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         logger.info(f"リクエスト受信: パス={self.path}、ヘッダー={self.headers}")
@@ -32,8 +43,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             user_id = get_user_id_from_request(self.headers)
 
             body = parse_json_body(self)
-            start_time = body.get("start_time")
-            end_time = body.get("end_time")
+            start_time = datetime.fromisoformat(body.get("start_time"))
+            end_time = datetime.fromisoformat(body.get("end_time"))
 
             # DB検索
             records = get_schedules_by_user_and_period(user_id, start_time, end_time)
@@ -42,8 +53,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             for rec in records:
                 item = {
                     "title": rec.get("title"),
-                    "start_time": rec.get("start_time"),
-                    "end_time": rec.get("end_time"),
+                    "start_time": to_iso(rec.get("start_time")),
+                    "end_time": to_iso(rec.get("end_time")),
                     "location": rec.get("location"),
                 }
                 result.append(item)

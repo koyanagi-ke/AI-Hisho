@@ -13,4 +13,4 @@ def get_schedules_by_user_and_period(user_id, start_time, end_time):
     field_filters = [FieldFilter(field, op, val) for field, op, val in filters]
     result = collection.where(filter=BaseCompositeFilter("AND", field_filters)).order_by("start_time").stream()
 
-    return result
+    return [doc.to_dict() for doc in result]

@@ -1,9 +1,13 @@
-import 'package:app/services/api_service.dart';
-import 'package:app/widgets/common/common_layout.dart';
-import 'package:app/widgets/common/theme_builder.dart';
-import 'package:app/widgets/custom_button.dart';
+import 'package:app/utils/date_format_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../constants/colors.dart';
+import '../providers/preferences_provider.dart';
+import '../services/api/event_api.dart';
+import '../services/api/schedule_api.dart';
+import '../models/schedule_event.dart';
+import '../widgets/input/labeled_text_field.dart';
+import '../widgets/input/date_time_picker_row.dart';
 
 class AddScheduleScreen extends StatefulWidget {
   const AddScheduleScreen({super.key});
@@ -13,103 +17,238 @@ class AddScheduleScreen extends StatefulWidget {
 }
 
 class _AddScheduleScreenState extends State<AddScheduleScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _locationController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _notifyAtController = TextEditingController();
-
-  DateTime? _startDate;
-  TimeOfDay? _startTime;
-  DateTime? _endDate;
-  TimeOfDay? _endTime;
-  bool _allDay = false;
+  final TextEditingController _naturalLanguageController =
+      TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
   bool _isLoading = false;
+  bool _showManualForm = false;
+  bool _isAnalyzed = false;
+  bool _notificationEnabled = false;
 
-  Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    if (_startDate == null || _endDate == null) return;
+  DateTime _startDate = DateTime.now();
+  TimeOfDay _startTime = TimeOfDay.now();
+  DateTime _endDate = DateTime.now();
+  TimeOfDay _endTime =
+      TimeOfDay.now().replacing(hour: TimeOfDay.now().hour + 1);
 
-    setState(() => _isLoading = true);
+  DateTime _notifyDate = DateTime.now();
+  TimeOfDay _notifyTime = TimeOfDay.now();
 
-    final startDateTime = _allDay
-        ? DateTime(_startDate!.year, _startDate!.month, _startDate!.day, 0, 0)
-        : DateTime(_startDate!.year, _startDate!.month, _startDate!.day,
-            _startTime!.hour, _startTime!.minute);
-    final endDateTime = _allDay
-        ? DateTime(_endDate!.year, _endDate!.month, _endDate!.day, 23, 59)
-        : DateTime(_endDate!.year, _endDate!.month, _endDate!.day,
-            _endTime!.hour, _endTime!.minute);
+  @override
+  void initState() {
+    super.initState();
+    _endDate = _startDate;
+    _notifyDate = _startDate;
+    // デフォルトで1時間前に通知
+    _notifyTime = TimeOfDay.now().replacing(hour: TimeOfDay.now().hour - 1);
+  }
 
-    final body = {
-      'title': _titleController.text,
-      'start_time': startDateTime.toIso8601String(),
-      'end_time': endDateTime.toIso8601String(),
-      'location': _locationController.text,
-      if (_addressController.text.isNotEmpty)
-        'address': _addressController.text,
-      if (_notifyAtController.text.isNotEmpty)
-        'notify_at': _notifyAtController.text,
-    };
+  @override
+  void dispose() {
+    _naturalLanguageController.dispose();
+    _titleController.dispose();
+    _locationController.dispose();
+    _addressController.dispose();
+    super.dispose();
+  }
 
-    final success = await ApiService.request(
-      path: '/api/crud-schedule',
-      method: 'POST',
-      body: body,
-    );
+  Future<void> _analyzeNaturalLanguage() async {
+    if (_naturalLanguageController.text.trim().isEmpty) return;
 
-    setState(() => _isLoading = false);
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (success) {
-      if (mounted) Navigator.of(context).pop();
-    } else {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('エラー'),
-          content: const Text('スケジュールの追加に失敗しました。'),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('OK'))
-          ],
-        ),
-      );
+    try {
+      final result =
+          await EventApi.extractEvent(_naturalLanguageController.text);
+      if (result != null) {
+        final event = ScheduleEvent.fromJson(result);
+        setState(() {
+          _titleController.text = event.title;
+          _locationController.text = event.location;
+          _startDate = event.startTime;
+          _startTime = TimeOfDay.fromDateTime(event.startTime);
+          _endDate = event.endTime;
+          _endTime = TimeOfDay.fromDateTime(event.endTime);
+
+          // 通知時刻を開始時刻の1時間前に設定
+          final notifyDateTime =
+              event.startTime.subtract(const Duration(hours: 1));
+          _notifyDate = notifyDateTime;
+          _notifyTime = TimeOfDay.fromDateTime(notifyDateTime);
+
+          _isAnalyzed = true;
+          _showManualForm = true;
+        });
+      } else {
+        _showErrorSnackBar('予定の解析に失敗しました。手動で入力してください。');
+      }
+    } catch (e) {
+      _showErrorSnackBar('エラーが発生しました: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _pickDate({required bool isStart}) async {
-    final initialDate =
-        isStart ? _startDate ?? DateTime.now() : _endDate ?? DateTime.now();
-    final picked = await showDatePicker(
+  void _showManualInput() {
+    setState(() {
+      _showManualForm = true;
+      _isAnalyzed = false;
+    });
+  }
+
+  Future<void> _saveSchedule() async {
+    if (_titleController.text.trim().isEmpty ||
+        _locationController.text.trim().isEmpty) {
+      _showErrorSnackBar('タイトルと場所は必須です');
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final startDateTime = DateTime(
+        _startDate.year,
+        _startDate.month,
+        _startDate.day,
+        _startTime.hour,
+        _startTime.minute,
+      );
+
+      final endDateTime = DateTime(
+        _endDate.year,
+        _endDate.month,
+        _endDate.day,
+        _endTime.hour,
+        _endTime.minute,
+      );
+
+      String? notifyAtString;
+      if (_notificationEnabled) {
+        final notifyDateTime = DateTime(
+          _notifyDate.year,
+          _notifyDate.month,
+          _notifyDate.day,
+          _notifyTime.hour,
+          _notifyTime.minute,
+        );
+        notifyAtString = toIso8601WithOffset(notifyDateTime);
+      }
+
+      final success = await ScheduleApi.createSchedule(
+        title: _titleController.text,
+        startTime: toIso8601WithOffset(startDateTime),
+        endTime: toIso8601WithOffset(endDateTime),
+        location: _locationController.text,
+        address:
+            _addressController.text.isNotEmpty ? _addressController.text : null,
+        notifyAt: notifyAtString,
+      );
+
+      if (success) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('予定を保存しました')),
+        );
+      } else {
+        _showErrorSnackBar('予定の保存に失敗しました');
+      }
+    } catch (e) {
+      _showErrorSnackBar('エラーが発生しました: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  Future<void> _selectDate(String type) async {
+    DateTime initialDate;
+    switch (type) {
+      case 'start':
+        initialDate = _startDate;
+        break;
+      case 'end':
+        initialDate = _endDate;
+        break;
+      case 'notify':
+        initialDate = _notifyDate;
+        break;
+      default:
+        initialDate = DateTime.now();
+    }
+
+    final date = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
+      firstDate: DateTime.now().subtract(const Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null) {
+
+    if (date != null) {
       setState(() {
-        if (isStart) {
-          _startDate = picked;
-        } else {
-          _endDate = picked;
+        switch (type) {
+          case 'start':
+            _startDate = date;
+            break;
+          case 'end':
+            _endDate = date;
+            break;
+          case 'notify':
+            _notifyDate = date;
+            break;
         }
       });
     }
   }
 
-  Future<void> _pickTime({required bool isStart}) async {
-    final picked = await showTimePicker(
+  Future<void> _selectTime(String type) async {
+    TimeOfDay initialTime;
+    switch (type) {
+      case 'start':
+        initialTime = _startTime;
+        break;
+      case 'end':
+        initialTime = _endTime;
+        break;
+      case 'notify':
+        initialTime = _notifyTime;
+        break;
+      default:
+        initialTime = TimeOfDay.now();
+    }
+
+    final time = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: initialTime,
     );
-    if (picked != null) {
+
+    if (time != null) {
       setState(() {
-        if (isStart) {
-          _startTime = picked;
-        } else {
-          _endTime = picked;
+        switch (type) {
+          case 'start':
+            _startTime = time;
+            break;
+          case 'end':
+            _endTime = time;
+            break;
+          case 'notify':
+            _notifyTime = time;
+            break;
         }
       });
     }
@@ -117,140 +256,309 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ThemeBuilder(builder: (context, primaryColor) {
-      return CommonLayout(
-        appBar: AppBar(
-          title: const Text('スケジュールを追加'),
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: primaryColor),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+    final prefsProvider = Provider.of<PreferencesProvider>(context);
+    final themeColor = prefsProvider.preferences.themeColor;
+    final primaryColor =
+        AppColors.themeColors[themeColor] ?? AppColors.themeColors['orange']!;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('予定を追加'),
+        centerTitle: true,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: primaryColor),
+          onPressed: () => Navigator.of(context).pop(),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!_showManualForm) ...[
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Form(
-              key: _formKey,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildTextField(
-                      primaryColor,
-                      Icons.title,
-                      'タイトル *',
-                      true,
-                      _titleController,
+                    Row(
+                      children: [
+                        Icon(Icons.auto_awesome, color: primaryColor),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'AI予定作成',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
-                    _buildTextField(
-                      primaryColor,
-                      Icons.place,
-                      '場所 *',
-                      true,
-                      _locationController,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildTextField(primaryColor, Icons.home, '住所（任意）', false,
-                        _addressController),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _notifyAtController,
-                      decoration: const InputDecoration(
-                        labelText: '通知日時（ISO8601形式）',
-                        prefixIcon: Icon(Icons.notifications_active),
+                    const Text(
+                      '予定を入力してください',
+                      style: TextStyle(
+                        color: AppColors.gray600,
+                        fontSize: 14,
                       ),
                     ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _naturalLanguageController,
+                      decoration: InputDecoration(
+                        hintText: '例: 明日の午後3時から5時まで東京オフィスでミーティング',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: primaryColor),
+                        ),
+                      ),
+                      maxLines: 3,
+                    ),
                     const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        const Text('終日'),
-                        Switch(
-                          value: _allDay,
-                          onChanged: (val) => setState(() => _allDay = val),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton.icon(
-                          icon: const Icon(Icons.calendar_today),
-                          onPressed: () => _pickDate(isStart: true),
-                          label: Text(_startDate == null
-                              ? '開始日を選択'
-                              : DateFormat('yyyy/MM/dd').format(_startDate!)),
-                        ),
-                        if (!_allDay)
-                          TextButton.icon(
-                            icon: const Icon(Icons.access_time),
-                            onPressed: () => _pickTime(isStart: true),
-                            label: Text(_startTime == null
-                                ? '開始時間'
-                                : _startTime!.format(context)),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _analyzeNaturalLanguage,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        TextButton.icon(
-                          icon: const Icon(Icons.calendar_today),
-                          onPressed: () => _pickDate(isStart: false),
-                          label: Text(_endDate == null
-                              ? '終了日を選択'
-                              : DateFormat('yyyy/MM/dd').format(_endDate!)),
                         ),
-                        if (!_allDay)
-                          TextButton.icon(
-                            icon: const Icon(Icons.access_time),
-                            onPressed: () => _pickTime(isStart: false),
-                            label: Text(_endTime == null
-                                ? '終了時間'
-                                : _endTime!.format(context)),
-                          ),
-                      ],
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : const Text('AI解析'),
+                      ),
                     ),
-                    const SizedBox(height: 32),
-                    CustomButton(
-                        text: '保存する',
-                        onPressed: _submit,
-                        isFullWidth: true,
-                        isLoading: _isLoading),
                   ],
                 ),
               ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
-
-  Widget _buildTextField(Color primaryColor, IconData icon, String text,
-      bool isRequired, TextEditingController controller) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: text,
-        focusedBorder: UnderlineInputBorder(
-          borderSide: BorderSide(color: primaryColor),
-        ),
-        prefixIcon: Icon(
-          icon,
-          size: 16,
-          color: primaryColor,
+              const SizedBox(height: 24),
+              Center(
+                child: Column(
+                  children: [
+                    const Text(
+                      'または',
+                      style: TextStyle(
+                        color: AppColors.gray500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: _showManualInput,
+                      child: Text(
+                        '手動で入力する',
+                        style: TextStyle(
+                          color: primaryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (_showManualForm) ...[
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          _isAnalyzed ? Icons.auto_awesome : Icons.edit,
+                          color: primaryColor,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isAnalyzed ? 'AI解析結果' : '予定の詳細',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    LabeledTextField(
+                      label: 'タイトル *',
+                      controller: _titleController,
+                      hintText: '予定のタイトルを入力',
+                      primaryColor: primaryColor,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '開始日時 *',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DateTimePickerRow(
+                      date: _startDate,
+                      time: _startTime,
+                      onDateTap: () => _selectDate('start'),
+                      onTimeTap: () => _selectTime('start'),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      '終了日時 *',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    DateTimePickerRow(
+                      date: _endDate,
+                      time: _endTime,
+                      onDateTap: () => _selectDate('end'),
+                      onTimeTap: () => _selectTime('end'),
+                    ),
+                    const SizedBox(height: 16),
+                    LabeledTextField(
+                      label: '場所 *',
+                      controller: _locationController,
+                      hintText: '場所を入力',
+                      primaryColor: primaryColor,
+                    ),
+                    const SizedBox(height: 16),
+                    LabeledTextField(
+                      label: '住所（オプション）',
+                      controller: _addressController,
+                      hintText: '詳細な住所を入力',
+                      primaryColor: primaryColor,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          '通知設定',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                        ),
+                        Switch(
+                          value: _notificationEnabled,
+                          onChanged: (value) {
+                            setState(() {
+                              _notificationEnabled = value;
+                              if (value) {
+                                // 開始時刻の1時間前をデフォルトに設定
+                                final startDateTime = DateTime(
+                                  _startDate.year,
+                                  _startDate.month,
+                                  _startDate.day,
+                                  _startTime.hour,
+                                  _startTime.minute,
+                                );
+                                final notifyDateTime = startDateTime
+                                    .subtract(const Duration(hours: 1));
+                                _notifyDate = notifyDateTime;
+                                _notifyTime =
+                                    TimeOfDay.fromDateTime(notifyDateTime);
+                              }
+                            });
+                          },
+                          activeColor: primaryColor,
+                        ),
+                      ],
+                    ),
+                    if (_notificationEnabled) ...[
+                      const SizedBox(height: 8),
+                      const Text(
+                        '通知日時',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DateTimePickerRow(
+                        date: _notifyDate,
+                        time: _notifyTime,
+                        onDateTap: () => _selectDate('notify'),
+                        onTimeTap: () => _selectTime('notify'),
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _saveSchedule,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              )
+                            : const Text(
+                                '予定を保存',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            const SizedBox(height: 100),
+          ],
         ),
       ),
     );

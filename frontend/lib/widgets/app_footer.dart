@@ -2,23 +2,28 @@ import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
 import '../constants/colors.dart';
 
-class AppFooter extends StatefulWidget {
+class AppFooter extends StatelessWidget {
   const AppFooter({super.key});
 
   @override
-  State<AppFooter> createState() => _AppFooterState();
-}
-
-class _AppFooterState extends State<AppFooter> {
-  int currentIndex = 0;
-  void onTap(int index) {
-    setState(() {
-      currentIndex = index;
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
+    void onTap(int index) {
+      // TODO
+      switch (index) {
+        case 0:
+          Navigator.of(context).pushNamed('/home');
+          break;
+        case 1:
+          Navigator.of(context).pushNamed('/add_schedule');
+          break;
+        case 2:
+          Navigator.of(context).pushNamed('/calendar');
+          break;
+        case 3:
+          Navigator.of(context).pushNamed('/profile');
+      }
+    }
+
     return ThemeBuilder(builder: (context, primaryColor) {
       return BottomAppBar(
         shape: const CircularNotchedRectangle(),
@@ -26,31 +31,32 @@ class _AppFooterState extends State<AppFooter> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(
-              icon: Icons.calendar_today,
-              label: 'スケジュール',
-              isSelected: currentIndex == 0,
+              icon: Icons.home,
+              label: 'ホーム',
+              isSelected: ModalRoute.of(context)?.settings.name == '/home',
               primaryColor: primaryColor,
               onTap: () => onTap(0),
             ),
             _buildNavItem(
-              icon: Icons.calendar_month,
-              label: 'カレンダー',
-              isSelected: currentIndex == 1,
+              icon: Icons.add,
+              label: '予定の追加',
+              isSelected:
+                  ModalRoute.of(context)?.settings.name == '/add_schedule',
               primaryColor: primaryColor,
               onTap: () => onTap(1),
             ),
             const SizedBox(width: 40), // FAB用のスペース
             _buildNavItem(
-              icon: Icons.cloud,
-              label: '天気',
-              isSelected: currentIndex == 2,
+              icon: Icons.calendar_month,
+              label: 'カレンダー',
+              isSelected: ModalRoute.of(context)?.settings.name == '/calendar',
               primaryColor: primaryColor,
               onTap: () => onTap(2),
             ),
             _buildNavItem(
               icon: Icons.person,
-              label: 'プロフィール',
-              isSelected: currentIndex == 3,
+              label: '設定',
+              isSelected: ModalRoute.of(context)?.settings.name == '/profile',
               primaryColor: primaryColor,
               onTap: () => onTap(3),
             ),

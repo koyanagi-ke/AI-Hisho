@@ -126,56 +126,44 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
         ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Form(
-                key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _titleController,
-                      decoration: const InputDecoration(
-                        labelText: 'タイトル *',
-                        prefixIcon: Icon(Icons.title),
-                      ),
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'タイトルを入力してください'
-                          : null,
+                    _buildTextField(
+                      primaryColor,
+                      Icons.title,
+                      'タイトル *',
+                      true,
+                      _titleController,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: const InputDecoration(
-                        labelText: '場所 *',
-                        prefixIcon: Icon(Icons.place),
-                      ),
-                      validator: (value) =>
-                          value == null || value.isEmpty ? '場所を入力してください' : null,
+                    _buildTextField(
+                      primaryColor,
+                      Icons.place,
+                      '場所 *',
+                      true,
+                      _locationController,
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _addressController,
-                      decoration: const InputDecoration(
-                        labelText: '住所（任意）',
-                        prefixIcon: Icon(Icons.home),
-                      ),
-                    ),
+                    _buildTextField(primaryColor, Icons.home, '住所（任意）', false,
+                        _addressController),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _notifyAtController,
@@ -236,10 +224,10 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                     ),
                     const SizedBox(height: 32),
                     CustomButton(
-                      text: '保存する',
-                      onPressed: _submit,
-                      isFullWidth: true,
-                    ),
+                        text: '保存する',
+                        onPressed: _submit,
+                        isFullWidth: true,
+                        isLoading: _isLoading),
                   ],
                 ),
               ),
@@ -248,5 +236,23 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
         ),
       );
     });
+  }
+
+  Widget _buildTextField(Color primaryColor, IconData icon, String text,
+      bool isRequired, TextEditingController controller) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: text,
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: primaryColor),
+        ),
+        prefixIcon: Icon(
+          icon,
+          size: 16,
+          color: primaryColor,
+        ),
+      ),
+    );
   }
 }

@@ -240,34 +240,4 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required bool isSelected,
-    required Color primaryColor,
-    VoidCallback? onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isSelected ? primaryColor : AppColors.gray400,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: isSelected ? primaryColor : AppColors.gray500,
-              fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

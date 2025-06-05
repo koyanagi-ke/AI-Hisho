@@ -1,17 +1,23 @@
 import requests
-import google.generativeai as genai
+from google import genai
+from .secret_manager_client import get_gemini_api_key
+
+get_gemini_api_key()
+client = genai.Client()
+model = "gemini-2.0-flash"
 
 def build_prompt(weather_info, schedule_info):
     """
     天気情報とスケジュール情報をもとにGeminiへ投げるプロンプトを組み立てる
     """
     prompt = (
-        "あなたは気象アドバイザーです。"
-        "次のスケジュールと天気情報を参考に、当日の注意点やアドバイスを日本語で1つ短く作ってください。\n"
+        "あなたは予定プランナーです。"
+        "次のスケジュールと天気情報を考慮して、当日を楽しめるようにアドバイスを日本語で1つ作ってください。\n"
         f"【スケジュール情報】\n{schedule_info}\n"
         f"【天気情報】\n{weather_info}\n"
-        "【出力例】\n・雨の予報ですので傘をお忘れなく。\n"
-        "・気温が高いので熱中症対策を忘れずに。\n"
+        "【出力例】\n・雨が強すぎるので、水族館や映画館に行くのはいかがでしょうか。\n"
+        "・絶好の動物園日和ですね。日焼け対策と水分補給を忘れずに。\n"
+        "・雨が降る可能性が高いので、屋内の展示を中心に回ったり、雨宿りできるカフェなどを事前に調べておくと安心です。\n"
     )
     return prompt
 
@@ -23,15 +29,9 @@ def generate_weather_advice(weather_info, schedule_info):
     prompt = build_prompt(weather_info, schedule_info)
 
     try:
-        model = genai.GenerativeModel(
-            model_name="gemini-2.0-flash",
-            generation_config={ 
-                "temperature": 0.7,
-                "max_output_tokens": 200,
-            }
+        response = client.models.generate_content(
+            model=model, contents=prompt
         )
-
-        response = model.generate_content(prompt)
 
         if response.parts:
             advice = response.text.strip()

@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
 import logging
+import json
 from lib.firestore_client import get_firestore_client, get_query_with_and_filters, update_document_advice
 from lib.advice import generate_weather_advice
 
@@ -38,7 +39,7 @@ def update_advice_for_records(records):
         try:
             obj = doc.to_dict()
             weather_info = obj.get("weather_info")
-            schedule_info = obj.get("schedule_info")
+            schedule_info = obj.get("title")
             if weather_info and schedule_info:
                 advice = generate_weather_advice(weather_info, schedule_info)
                 update_document_advice(
@@ -46,6 +47,6 @@ def update_advice_for_records(records):
                 )
                 logger.info(f"{event_id} の天気アドバイスを更新しました")
             else:
-                logger.info(f"{event_id} はweather_infoまたはschedule_infoがないためスキップ")
+                logger.info(f"{event_id} はweather_infoまたはtitleがないためスキップ")
         except Exception as e:
             logger.error(f"{event_id} の処理でエラー発生: {e}")

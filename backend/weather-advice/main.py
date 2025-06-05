@@ -8,6 +8,8 @@ from get_trigger_advice import get_trigger_record, update_advice_for_trigger_rec
 import google.generativeai as genai
 from lib.secret_manager_client import get_gemini_api_key
 
+configure_logger()
+logger = logging.getLogger()
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -66,19 +68,10 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
-        self.wfile.write(b"PATCH OK")
+        self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
 
 
 def run():
-    configure_logger()
-
-    try:
-        api_key = get_gemini_api_key()
-        genai.configure(api_key=api_key)
-    except Exception as e:
-        logger.critical(f"Gemini APIキーの取得に失敗しました: {e}")
-        exit(1) 
-
     port = int(os.environ.get("PORT", 8080))
     server = HTTPServer(("", port), RequestHandler)
     logger.info(f"サーバー起動 ポート: {port}")

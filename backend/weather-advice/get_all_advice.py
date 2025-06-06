@@ -45,7 +45,7 @@ def update_advice_for_records(records):
             end_time = obj.get("end_time")
 
             if weather_info and schedule_info:
-                advice = generate_weather_advice(weather_info, schedule_info)
+                advice = generate_weather_advice(weather_info, schedule_info, location, start_time, end_time)
                 update_document_advice(
                     db.collection("users").document(user_id).collection("events"), event_id, advice
                 )

@@ -5,8 +5,6 @@ import json
 from lib.logger_setup import configure_logger
 from get_all_advice import get_all_records, update_advice_for_records
 from get_trigger_advice import get_trigger_record, update_advice_for_trigger_record
-import google.generativeai as genai
-from lib.secret_manager_client import get_gemini_api_key
 
 configure_logger()
 logger = logging.getLogger()
@@ -45,11 +43,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(b"PUT OK")
 
     def do_PATCH(self):
+        logger.info(f"triggerバッチによるPATCHリクエスト受信")
         content_length = int(self.headers.get("Content-Length", 0))
-        patch_data = self.rfile.read(content_length)
-        logger.info(
-            f"PATCHリクエスト受信: パス={self.path}、ヘッダー={self.headers}、ボディ={patch_data.decode('utf-8')}"
-        )
+        patch_data = self.rfile.read(content_length).decode("utf-8")
 
         try:
             data = json.loads(patch_data)
@@ -68,7 +64,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
-        self.wfile.write(json.dumps({"status": "success"}).encode("utf-8"))
+        self.wfile.write(b"PATCH OK")
 
 
 def run():

@@ -21,7 +21,10 @@ def get_trigger_record(user_id, event_id):
 
 def update_advice_for_trigger_record(user_id, event_id, record_dict):
     weather_info = record_dict.get("weather_info")
-    schedule_info = record_dict.get("schedule_info")
+    schedule_info = record_dict.get("title")
+    location = record_dict.get("location")
+    start_time = record_dict.get("start_time")
+    end_time = record_dict.get("end_time")
     if weather_info and schedule_info:
         advice = generate_weather_advice(weather_info, schedule_info)
         update_document_advice(

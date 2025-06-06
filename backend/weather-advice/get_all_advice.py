@@ -40,6 +40,10 @@ def update_advice_for_records(records):
             obj = doc.to_dict()
             weather_info = obj.get("weather_info")
             schedule_info = obj.get("title")
+            location = obj.get("location")
+            start_time = obj.get("start_time")
+            end_time = obj.get("end_time")
+
             if weather_info and schedule_info:
                 advice = generate_weather_advice(weather_info, schedule_info)
                 update_document_advice(
@@ -47,6 +51,6 @@ def update_advice_for_records(records):
                 )
                 logger.info(f"{event_id} の天気アドバイスを更新しました")
             else:
-                logger.info(f"{event_id} はweather_infoまたはtitleがないためスキップ")
+                logger.info(f"{event_id} はweather_infoまたはtitle,location,timeがないためスキップ")
         except Exception as e:
             logger.error(f"{event_id} の処理でエラー発生: {e}")

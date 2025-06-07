@@ -43,5 +43,5 @@ def generate_weather_advice(weather_info, schedule_info, location, start_time, e
             return f"天気アドバイスを取得できませんでした。理由: {response.prompt_feedback if response.prompt_feedback else '不明な理由'}"
 
     except Exception as e:
-        print(f"Gemini API error (SDK): {e}")
+        logger.error(f"Gemini API error (SDK): {e}")
         return "天気アドバイス生成に失敗しました"

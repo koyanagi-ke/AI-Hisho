@@ -1,7 +1,11 @@
 from datetime import datetime, timedelta, timezone
 import logging
 import json
-from lib.firestore_client import get_firestore_client, get_query_with_and_filters, update_document_advice
+from lib.firestore_client import (
+    get_firestore_client, 
+    get_query_with_and_filters, 
+    update_document_advice,
+)
 from lib.advice import generate_weather_advice
 
 logger = logging.getLogger()

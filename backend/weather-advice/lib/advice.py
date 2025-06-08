@@ -39,7 +39,7 @@ def generate_weather_advice(weather_info, schedule_info, location, start_time, e
             model=model, contents=prompt
         )
 
-        if response.parts:
+        if response.text:
             advice = response.text.strip()
             return advice if advice else "天気アドバイスを取得できませんでした（空の応答）"
         else:

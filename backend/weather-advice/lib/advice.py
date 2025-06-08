@@ -1,6 +1,9 @@
 import requests
 from google import genai
 from .secret_manager_client import get_gemini_api_key
+import logging
+
+logger = logging.getLogger()
 
 get_gemini_api_key()
 client = genai.Client()

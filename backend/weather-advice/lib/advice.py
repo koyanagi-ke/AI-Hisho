@@ -15,7 +15,7 @@ def build_prompt(weather_info, schedule_info, location, start_time, end_time):
     """
     prompt = (
         "あなたは予定プランナーです。"
-        "次のスケジュールと天気情報を考慮して、当日を楽しめるようにアドバイスを日本語で1つ作ってください。\n"
+        "次のスケジュールと天気情報を考慮して、当日を楽しめるよう日本語で2〜3文程度のアドバイスを作成してください。\n"
         f"【スケジュール情報】\n{schedule_info}\n"
         f"【天気情報】\n{weather_info}\n"
         f"【場所】\n{location}\n"

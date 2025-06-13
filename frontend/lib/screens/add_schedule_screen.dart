@@ -29,21 +29,22 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   bool _notificationEnabled = false;
 
   DateTime _startDate = DateTime.now();
-  TimeOfDay _startTime = TimeOfDay.now();
+  late TimeOfDay _startTime;
   DateTime _endDate = DateTime.now();
-  TimeOfDay _endTime =
-      TimeOfDay.now().replacing(hour: TimeOfDay.now().hour + 1);
-
-  DateTime _notifyDate = DateTime.now();
-  TimeOfDay _notifyTime = TimeOfDay.now();
+  late TimeOfDay _endTime;
+  late DateTime _notifyDate;
+  late TimeOfDay _notifyTime;
 
   @override
   void initState() {
     super.initState();
+    _startTime = TimeOfDay.now();
     _endDate = _startDate;
     _notifyDate = _startDate;
-    // デフォルトで1時間前に通知
-    _notifyTime = TimeOfDay.now().replacing(hour: TimeOfDay.now().hour - 1);
+
+    final now = TimeOfDay.now();
+    _endTime = now.replacing(hour: (now.hour + 1) % 24);
+    _notifyTime = now.replacing(hour: (now.hour - 1 + 24) % 24);
   }
 
   @override
@@ -75,7 +76,6 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
           _endDate = event.endTime;
           _endTime = TimeOfDay.fromDateTime(event.endTime);
 
-          // 通知時刻を開始時刻の1時間前に設定
           final notifyDateTime =
               event.startTime.subtract(const Duration(hours: 1));
           _notifyDate = notifyDateTime;

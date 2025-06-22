@@ -154,10 +154,15 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
       );
 
       if (success) {
-        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('予定を保存しました')),
+          const SnackBar(
+            content: Text('予定を保存しました'),
+            backgroundColor: Colors.green,
+            duration: Duration(milliseconds: 1000),
+          ),
         );
+        await Future.delayed(const Duration(milliseconds: 1100));
+        Navigator.of(context).pop();
       } else {
         _showErrorSnackBar('予定の保存に失敗しました');
       }
@@ -472,7 +477,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          '通知設定',
+                          '通知時間を設定',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,

@@ -6,11 +6,13 @@ import 'package:app/widgets/common/theme_builder.dart'; // 追加
 class CommonLayout extends StatelessWidget {
   final Widget child;
   final PreferredSizeWidget? appBar;
+  final bool disableScroll;
 
   const CommonLayout({
     super.key,
     required this.child,
     this.appBar,
+    this.disableScroll = false,
   });
 
   @override
@@ -24,7 +26,11 @@ class CommonLayout extends StatelessWidget {
               appBar: appBar,
               body: Stack(
                 children: [
-                  Positioned.fill(child: SingleChildScrollView(child: child)),
+                  Positioned.fill(
+                    child: disableScroll
+                        ? child
+                        : SingleChildScrollView(child: child),
+                  ),
                   const Positioned(
                     right: 16,
                     bottom: 120,

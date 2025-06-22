@@ -1,6 +1,7 @@
 import 'package:app/firebase_options.dart';
 import 'package:app/providers/chat_provider.dart';
 import 'package:app/screens/add_schedule_screen.dart';
+import 'package:app/screens/reminder_list_screen.dart';
 import 'package:app/screens/welcome_screen.dart';
 import 'package:app/services/fcm_service.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +14,11 @@ import 'screens/profile_screen.dart';
 import 'services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('ja_JP', null);
   await dotenv.load();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -60,6 +63,7 @@ class MyApp extends StatelessWidget {
                 tutorialCompleted ? const HomeScreen() : const WelcomeScreen(),
             routes: {
               '/home': (context) => const HomeScreen(),
+              '/checklist': (context) => const ReminderListScreen(),
               '/add_schedule': (context) => const AddScheduleScreen(),
               '/profile': (context) => const ProfileScreen(),
               '/tutorial': (context) => const TutorialScreen(),

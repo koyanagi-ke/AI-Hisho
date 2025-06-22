@@ -1,6 +1,7 @@
 import 'package:app/firebase_options.dart';
 import 'package:app/providers/chat_provider.dart';
 import 'package:app/screens/add_schedule_screen.dart';
+import 'package:app/screens/calendar_screen.dart';
 import 'package:app/screens/reminder_list_screen.dart';
 import 'package:app/screens/welcome_screen.dart';
 import 'package:app/services/fcm_service.dart';
@@ -67,6 +68,7 @@ class MyApp extends StatelessWidget {
               '/add_schedule': (context) => const AddScheduleScreen(),
               '/profile': (context) => const ProfileScreen(),
               '/tutorial': (context) => const TutorialScreen(),
+              '/calendar': (context) => const CalendarScreen(),
             },
           );
         },

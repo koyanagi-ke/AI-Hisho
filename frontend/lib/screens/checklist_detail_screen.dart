@@ -98,7 +98,7 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
             content: Text(!item.checked
                 ? '${item.item}の準備を完了しました'
                 : '${item.item}を未完了にしました'),
-            backgroundColor: item.checked ? Colors.green : Colors.orange,
+            backgroundColor: !item.checked ? Colors.green : Colors.orange,
             duration: const Duration(milliseconds: 1200),
           ),
         );

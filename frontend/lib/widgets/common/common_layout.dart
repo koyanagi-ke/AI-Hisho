@@ -27,7 +27,7 @@ class CommonLayout extends StatelessWidget {
                   Positioned.fill(child: SingleChildScrollView(child: child)),
                   const Positioned(
                     right: 16,
-                    bottom: 16,
+                    bottom: 120,
                     child: ChatBot(),
                   ),
                 ],

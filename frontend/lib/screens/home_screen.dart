@@ -1,11 +1,11 @@
+import 'package:app/constants/colors.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../constants/colors.dart';
-import '../providers/preferences_provider.dart';
 import '../services/api/schedule_api.dart';
 import '../models/schedule.dart';
 import '../widgets/schedule_card.dart';
+import '../widgets/common/common_layout.dart';
+import '../widgets/common/theme_builder.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -63,108 +63,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final prefsProvider = Provider.of<PreferencesProvider>(context);
-    final themeColor = prefsProvider.preferences.themeColor;
-    final primaryColor =
-        AppColors.themeColors[themeColor] ?? AppColors.themeColors['orange']!;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(DateFormat('yyyy年M月d日（E）', 'ja').format(_selectedDate)),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.chevron_left, color: primaryColor),
-          onPressed: () => _changeDate(-1),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.chevron_right, color: primaryColor),
-            onPressed: () => _changeDate(1),
-          ),
-        ],
-      ),
-      body: _buildBody(primaryColor),
-    );
-  }
-
-  Widget _buildBody(Color primaryColor) {
-    if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    }
-
-    if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _error!,
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppColors.gray600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loadSchedules,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primaryColor,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('再試行'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return RefreshIndicator(
-      onRefresh: _loadSchedules,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Date info header
-            _buildDateHeader(primaryColor),
-            const SizedBox(height: 20),
-
-            if (_schedules.isEmpty) ...[
-              _buildEmptyState(),
-            ] else ...[
-              Text(
-                'スケジュール (${_schedules.length}件)',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.gray900,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ..._schedules.map((schedule) => ScheduleCard(
-                    schedule: schedule,
-                    primaryColor: primaryColor,
-                    showChecklistButton: true,
-                  )),
-            ],
-
-            const SizedBox(height: 100), // ボトムナビゲーション用のスペース
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateHeader(Color primaryColor) {
     final isToday = DateUtils.isSameDay(_selectedDate, DateTime.now());
     final isYesterday = DateUtils.isSameDay(
         _selectedDate, DateTime.now().subtract(const Duration(days: 1)));
@@ -181,43 +79,83 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       dateLabel = DateFormat('M月d日（E）', 'ja').format(_selectedDate);
     }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            primaryColor.withOpacity(0.1),
-            primaryColor.withOpacity(0.05)
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: primaryColor.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.calendar_today_rounded,
-              color: primaryColor,
-              size: 20,
-            ),
+    return ThemeBuilder(builder: (context, primaryColor) {
+      return CommonLayout(
+        appBar: AppBar(
+          title: Text(dateLabel),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.chevron_left, color: primaryColor),
+            onPressed: () => _changeDate(-1),
           ),
-          const SizedBox(width: 12),
-          Text(
-            dateLabel,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: primaryColor,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.chevron_right, color: primaryColor),
+              onPressed: () => _changeDate(1),
             ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_isLoading) ...[
+                const Center(child: CircularProgressIndicator()),
+              ] else if (_error != null) ...[
+                _buildErrorState(primaryColor),
+              ] else if (_schedules.isEmpty) ...[
+                _buildEmptyState(),
+              ] else ...[
+                Text(
+                  'スケジュール (${_schedules.length}件)',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.gray900,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ..._schedules.map((schedule) => ScheduleCard(
+                      schedule: schedule,
+                      primaryColor: primaryColor,
+                      showChecklistButton: true,
+                    )),
+              ],
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildErrorState(Color primaryColor) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 64,
+            color: Colors.grey[400],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _error!,
+            style: const TextStyle(
+              fontSize: 16,
+              color: AppColors.gray600,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: _loadSchedules,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('再試行'),
           ),
         ],
       ),

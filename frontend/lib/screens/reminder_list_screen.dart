@@ -1,3 +1,5 @@
+import 'package:app/widgets/common/common_layout.dart';
+import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
@@ -54,28 +56,25 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final prefsProvider = Provider.of<PreferencesProvider>(context);
-    final themeColor = prefsProvider.preferences.themeColor;
-    final primaryColor =
-        AppColors.themeColors[themeColor] ?? AppColors.themeColors['orange']!;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('今日の準備リスト'),
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: primaryColor),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.refresh, color: primaryColor),
-            onPressed: _loadReminderSchedules,
+    return ThemeBuilder(builder: (context, primaryColor) {
+      return CommonLayout(
+        appBar: AppBar(
+          title: const Text('今日の準備リスト'),
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back, color: primaryColor),
+            onPressed: () => Navigator.of(context).pop(),
           ),
-        ],
-      ),
-      body: _buildBody(primaryColor),
-    );
+          actions: [
+            IconButton(
+              icon: Icon(Icons.refresh, color: primaryColor),
+              onPressed: _loadReminderSchedules,
+            ),
+          ],
+        ),
+        child: _buildBody(primaryColor),
+      );
+    });
   }
 
   Widget _buildBody(Color primaryColor) {

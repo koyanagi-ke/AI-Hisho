@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../constants/colors.dart';
 import '../providers/preferences_provider.dart';
 import '../services/api/reminder_api.dart';
 import '../models/schedule.dart';
-import 'checklist_detail_screen.dart';
+import '../widgets/schedule_card.dart';
 
 class ReminderListScreen extends StatefulWidget {
   const ReminderListScreen({super.key});
@@ -165,130 +164,13 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
                 color: AppColors.gray900,
               ),
             ),
-            const SizedBox(height: 12),
-            ..._schedules
-                .map((schedule) => _buildScheduleCard(schedule, primaryColor)),
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildScheduleCard(Schedule schedule, Color primaryColor) {
-    final startDate = DateFormat('M月d日（E）', 'ja').format(schedule.startTime);
-    final startTime = DateFormat('HH:mm').format(schedule.startTime);
-    final endTime = DateFormat('HH:mm').format(schedule.endTime);
-
-    final isSameDay = DateUtils.isSameDay(schedule.startTime, schedule.endTime);
-    final timeDisplay = isSameDay
-        ? '$startDate $startTime 〜 $endTime'
-        : '$startDate 〜 ${DateFormat('M月d日（E）', 'ja').format(schedule.endTime)}';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              schedule.title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.gray900,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                const Icon(
-                  Icons.access_time,
-                  size: 16,
-                  color: AppColors.gray500,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    timeDisplay,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.gray600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(
-                  Icons.location_on,
-                  size: 16,
-                  color: AppColors.gray500,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    schedule.location,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.gray600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ChecklistDetailScreen(
-                        eventId: schedule.eventId,
-                        eventTitle: schedule.title,
-                      ),
-                    ),
-                  );
-                },
-                icon: const Icon(
-                  Icons.checklist_rtl,
-                  size: 20,
-                  color: Colors.white,
-                ),
-                label: const Text(
-                  '持ち物リストを確認',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: primaryColor,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  elevation: 2,
-                ),
-              ),
-            ),
+            const SizedBox(height: 16),
+            ..._schedules.map((schedule) => ScheduleCard(
+                  schedule: schedule,
+                  primaryColor: primaryColor,
+                  showChecklistButton: true,
+                )),
+            const SizedBox(height: 100), // ボトムナビゲーション用のスペース
           ],
         ),
       ),

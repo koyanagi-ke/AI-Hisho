@@ -101,7 +101,7 @@
 | `location`       | string | イベントの開催場所   |
 | `next_check_due` | string | 次の持ち物準備の期日  |
 | `checklists`     | array  | チェックリストの配列  |
-| `wether_info`    | dict   | 天気の情報          |
+| `weather_info`    | dict   | 天気の情報          |
 
 checklists配下の項目
 | フィールド名           | 型      | 説明            |

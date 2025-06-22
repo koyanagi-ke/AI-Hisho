@@ -9,12 +9,12 @@ class ColorStep extends StatelessWidget {
   final Function(String) setColor;
 
   const ColorStep({
-    Key? key,
+    super.key,
     required this.onNext,
     required this.onBack,
     required this.selectedColor,
     required this.setColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

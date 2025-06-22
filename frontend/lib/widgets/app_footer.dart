@@ -14,7 +14,7 @@ class AppFooter extends StatelessWidget {
           Navigator.of(context).pushNamed('/home');
           break;
         case 1:
-          Navigator.of(context).pushNamed('/add_schedule');
+          Navigator.of(context).pushNamed('/checklist');
           break;
         case 2:
           Navigator.of(context).pushNamed('/calendar');
@@ -38,13 +38,20 @@ class AppFooter extends StatelessWidget {
               onTap: () => onTap(0),
             ),
             _buildNavItem(
-              icon: Icons.add,
-              label: '予定の追加',
-              isSelected:
-                  ModalRoute.of(context)?.settings.name == '/add_schedule',
+              icon: Icons.checklist,
+              label: 'チェックリスト',
+              isSelected: ModalRoute.of(context)?.settings.name == '/checklist',
               primaryColor: primaryColor,
               onTap: () => onTap(1),
             ),
+            // _buildNavItem(
+            //   icon: Icons.add,
+            //   label: '予定の追加',
+            //   isSelected:
+            //       ModalRoute.of(context)?.settings.name == '/add_schedule',
+            //   primaryColor: primaryColor,
+            //   onTap: () => onTap(1),
+            // ),
             const SizedBox(width: 40), // FAB用のスペース
             _buildNavItem(
               icon: Icons.calendar_month,

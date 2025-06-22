@@ -23,11 +23,11 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ThemeBuilder(builder: (context, primaryColor) {
-      final Color _primaryColor =
+      final Color buttonPrimaryColor =
           AppColors.themeColors[themeColor] ?? primaryColor;
 
       final buttonColor =
-          isLoading ? _primaryColor.withOpacity(0.3) : _primaryColor;
+          isLoading ? buttonPrimaryColor.withOpacity(0.3) : buttonPrimaryColor;
 
       return SizedBox(
         width: isFullWidth ? double.infinity : null,

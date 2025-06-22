@@ -1,0 +1,113 @@
+class ChecklistItem {
+  final String id;
+  final String item;
+  final int prepareBefore;
+  final bool checked;
+  final bool required;
+
+  ChecklistItem({
+    required this.id,
+    required this.item,
+    required this.prepareBefore,
+    required this.checked,
+    required this.required,
+  });
+
+  factory ChecklistItem.fromJson(Map<String, dynamic> json) {
+    return ChecklistItem(
+      id: json['id'] ?? '',
+      item: json['item'] ?? '',
+      prepareBefore: json['prepare_before'] ?? 0,
+      checked: json['checked'] ?? false,
+      required: json['required'] ?? false,
+    );
+  }
+
+  ChecklistItem copyWith({
+    String? id,
+    String? item,
+    int? prepareBefore,
+    bool? checked,
+    bool? required,
+  }) {
+    return ChecklistItem(
+      id: id ?? this.id,
+      item: item ?? this.item,
+      prepareBefore: prepareBefore ?? this.prepareBefore,
+      checked: checked ?? this.checked,
+      required: required ?? this.required,
+    );
+  }
+}
+
+class WeatherInfo {
+  final String? condition;
+  final double? temperature;
+  final String? description;
+
+  WeatherInfo({
+    this.condition,
+    this.temperature,
+    this.description,
+  });
+
+  factory WeatherInfo.fromJson(Map<String, dynamic> json) {
+    return WeatherInfo(
+      condition: json['condition'],
+      temperature: json['temperature']?.toDouble(),
+      description: json['description'],
+    );
+  }
+}
+
+class ScheduleDetail {
+  final String id;
+  final String title;
+  final DateTime startTime;
+  final DateTime endTime;
+  final String location;
+  final DateTime? nextCheckDue;
+  final List<ChecklistItem> checklists;
+  final WeatherInfo? weatherInfo;
+  final String? weatherAdvice;
+
+  ScheduleDetail({
+    required this.id,
+    required this.title,
+    required this.startTime,
+    required this.endTime,
+    required this.location,
+    this.nextCheckDue,
+    required this.checklists,
+    this.weatherInfo,
+    this.weatherAdvice,
+  });
+
+  factory ScheduleDetail.fromJson(Map<String, dynamic> json) {
+    final checklistsData = json['checklists'] as List<dynamic>? ?? [];
+    final checklists = checklistsData
+        .cast<Map<String, dynamic>>()
+        .map((item) => ChecklistItem.fromJson(item))
+        .toList();
+
+    WeatherInfo? weatherInfo;
+    if (json['weather_info'] != null) {
+      weatherInfo =
+          WeatherInfo.fromJson(json['weather_info'] as Map<String, dynamic>);
+    }
+
+    return ScheduleDetail(
+      id: json['id'] ?? '',
+      title: json['title'] ?? '',
+      startTime: DateTime.parse(json['start_time']),
+      endTime: DateTime.parse(json['end_time']),
+      location: json['location'] ?? '',
+      nextCheckDue: json['next_check_due'] != null
+          ? DateTime.parse(json['next_check_due'])
+          : null,
+      checklists: checklists,
+      weatherInfo: weatherInfo,
+      weatherAdvice: json['weather_advice'],
+    );
+  }
+}

@@ -80,6 +80,8 @@
   "end_time": "2025-05-17T14:30:00+00:00",
   "location": "吉祥寺",
   "next_check_due": "2025-05-14T09:00:00+00:00",
+  "weather_advice": "ハワイは晴れのち曇り、日中は少し風が強そうなので、羽織るものがあると安心です。",
+  "weather_info": "{city: {sunrise: 1750520655, country: US, sunset: 1750568583, timezone: -36000, name: ハワイ郡, id: 5855765, population: 185079, coord: {lon: -155.4487, lat: 19.5896}}, list: [{visibility: 10000, dt: 1750582800, weather: [{id: 800, description: 晴天, icon: 01n, main: Clear}], sys: {pod: n}, pop: 0, wind: {gust: 5.2, deg: 110, speed: 2.86}, clouds: {all: 2}, main: {temp_max: 12.36, humidity: 50, temp_kf: 0.4, grnd_level: 773, pressure: 1025, sea_level: 1025, temp_min: 11.96, feels_like: 10.96, temp: 12.36}, dt_txt: 2025-06-22 09:00:00}, {visibility: 10000, dt: 1750593600, weather: [{id: 800, description: 晴天, icon: 01n, main: Clear}",
   "checklists": [
     {
       "item": "財布",
@@ -101,11 +103,13 @@
 | `location`       | string | イベントの開催場所   |
 | `next_check_due` | string | 次の持ち物準備の期日 |
 | `checklists`     | array  | チェックリストの配列 |
+| `weather_advice` | string | 天気のアドバイス     |
 | `weather_info`   | dict   | 天気の情報           |
 
 checklists 配下の項目
 | フィールド名 | 型 | 説明 |
 | ---------------- | ------ | ------------- |
+| `id` | string | checklist_id(持ち物 ID) |
 | `item` | string | 持ち物名 |
 | `prepare_before` | int | 開始日の何日前に準備するか |
 | `checked` | bool | 準備済みかどうか |
@@ -224,26 +228,29 @@ checklists 配下の項目
 ```json
 [
   {
-    "id": "pO1acejHhke3HgCSZqLc",
+    "event_id": "pO1acejHhke3HgCSZqLc",
     "title": "遠足",
     "start_time": "2025-05-21T09:00:00+09:00",
-    "end_time": "2025-05-21T15:00:00+09:00"
+    "end_time": "2025-05-21T15:00:00+09:00",
+    "location": "東京"
   },
   {
-    "id": "abc123xyz",
+    "event_id": "abc123xyz",
     "title": "出張（名古屋）",
     "start_time": "2025-05-22T10:00:00+09:00",
-    "end_time": "2025-05-22T17:00:00+09:00"
+    "end_time": "2025-05-22T17:00:00+09:00",
+    "location": "東京"
   }
 ]
 ```
 
 | フィールド名 | 型     | 説明                         |
 | ------------ | ------ | ---------------------------- |
-| `id`         | string | 該当イベントの ID            |
+| `event_id`   | string | 該当イベントの ID            |
 | `title`      | string | イベントのタイトル           |
 | `start_time` | string | イベント開始日時（ISO 形式） |
 | `end_time`   | string | イベント終了日時（ISO 形式） |
+| `location`   | string | イベントの開催場所           |
 
 ---
 

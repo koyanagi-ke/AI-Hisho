@@ -99,6 +99,7 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
                 ? '${item.item}の準備を完了しました'
                 : '${item.item}を未完了にしました'),
             backgroundColor: item.checked ? Colors.green : Colors.orange,
+            duration: const Duration(milliseconds: 1200),
           ),
         );
       } else {
@@ -227,8 +228,8 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
     final endTime = DateFormat('HH:mm').format(schedule.endTime);
     final isSameDay = DateUtils.isSameDay(schedule.startTime, schedule.endTime);
     final timeDisplay = isSameDay
-        ? '$startDate $startTime〜$endTime'
-        : '$startDate $startTime〜${DateFormat('M月d日（E） HH:mm', 'ja').format(schedule.endTime)}';
+        ? '$startDate $startTime 〜 $endTime'
+        : '$startDate 〜 ${DateFormat('M月d日（E）', 'ja').format(schedule.endTime)}';
 
     return Container(
       padding: const EdgeInsets.all(20),

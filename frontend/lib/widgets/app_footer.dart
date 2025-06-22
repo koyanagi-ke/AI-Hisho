@@ -44,14 +44,6 @@ class AppFooter extends StatelessWidget {
               primaryColor: primaryColor,
               onTap: () => onTap(1),
             ),
-            // _buildNavItem(
-            //   icon: Icons.add,
-            //   label: '予定の追加',
-            //   isSelected:
-            //       ModalRoute.of(context)?.settings.name == '/add_schedule',
-            //   primaryColor: primaryColor,
-            //   onTap: () => onTap(1),
-            // ),
             const SizedBox(width: 40), // FAB用のスペース
             _buildNavItem(
               icon: Icons.calendar_month,

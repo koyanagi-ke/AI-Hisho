@@ -182,8 +182,8 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
 
     final isSameDay = DateUtils.isSameDay(schedule.startTime, schedule.endTime);
     final timeDisplay = isSameDay
-        ? '$startDate $startTime〜$endTime'
-        : '$startDate $startTime〜${DateFormat('M月d日（E） HH:mm', 'ja').format(schedule.endTime)}';
+        ? '$startDate $startTime 〜 $endTime'
+        : '$startDate 〜 ${DateFormat('M月d日（E）', 'ja').format(schedule.endTime)}';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),

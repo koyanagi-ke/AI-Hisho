@@ -20,10 +20,29 @@ class CommonLayout extends StatelessWidget {
         return Stack(
           children: [
             Scaffold(
+              extendBody: true,
               appBar: appBar,
-              body: SingleChildScrollView(child: child),
+              body: Stack(
+                children: [
+                  Positioned.fill(child: SingleChildScrollView(child: child)),
+                  const Positioned(
+                    right: 16,
+                    bottom: 16,
+                    child: ChatBot(),
+                  ),
+                ],
+              ),
               bottomNavigationBar: const AppFooter(),
-              floatingActionButton: const ChatBot(),
+              floatingActionButton: FloatingActionButton(
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/add_schedule');
+                },
+                backgroundColor: primaryColor,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(50),
+                ),
+                child: const Icon(Icons.add, size: 32),
+              ),
               floatingActionButtonLocation:
                   FloatingActionButtonLocation.centerDocked,
             ),

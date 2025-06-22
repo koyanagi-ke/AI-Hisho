@@ -44,6 +44,7 @@ dependencies:
   firebase_vertexai: ^1.6.0
   http: ^1.4.0
   flutter_dotenv: ^5.2.1
+  firebase_messaging: ^15.2.7
 
 dev_dependencies:
   flutter_test:

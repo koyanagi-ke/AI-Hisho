@@ -52,7 +52,7 @@ class RequestHandler(BaseHTTPRequestHandler):
             result = []
             for rec in records:
                 item = {
-                    "event_id": rec.get("eventId"),
+                    "event_id": rec.get("id"),
                     "title": rec.get("title"),
                     "start_time": to_iso(rec.get("start_time")),
                     "end_time": to_iso(rec.get("end_time")),

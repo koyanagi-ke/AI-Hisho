@@ -109,10 +109,11 @@
 checklists 配下の項目
 | フィールド名 | 型 | 説明 |
 | ---------------- | ------ | ------------- |
-| `item` | string | 持ち物名 |
-| `prepare_before` | int | 開始日の何日前に準備するか |
-| `checked` | bool | 準備済みかどうか |
-| `required` | bool | 必須アイテムかどうか |
+| `id` | string | checklist_id(持ち物ID) |
+| `item`           | string | 持ち物名          |
+| `prepare_before` | int    | 開始日の何日前に準備するか |
+| `checked`        | bool   | 準備済みかどうか      |
+| `required`       | bool   | 必須アイテムかどうか    |
 
 ---
 

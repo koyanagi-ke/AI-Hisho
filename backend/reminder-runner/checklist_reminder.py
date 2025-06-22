@@ -37,6 +37,7 @@ def get_checklist_reminder(self):
                 "title": event.get("title"),
                 "start_time": event.get("start_time"),
                 "end_time": event.get("end_time"),
+                "location": event.get("location"),
             }
         )
     return result

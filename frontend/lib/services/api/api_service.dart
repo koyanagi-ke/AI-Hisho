@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ApiService {
-  static Future<Map<String, dynamic>?> request({
+  static Future<T?> request<T>({
     required String path,
     required String method,
     Map<String, dynamic>? body,
@@ -19,7 +19,7 @@ class ApiService {
         'Authorization': 'Bearer $token',
       };
 
-      late http.Response response;
+      late final http.Response response;
       switch (method.toUpperCase()) {
         case 'POST':
           response =
@@ -40,7 +40,9 @@ class ApiService {
       }
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        final decoded = jsonDecode(response.body);
+        print(decoded);
+        return decoded as T;
       } else {
         print('API Error: ${response.statusCode} - ${response.body}');
         return null;

@@ -230,13 +230,15 @@ checklists 配下の項目
     "event_id": "pO1acejHhke3HgCSZqLc",
     "title": "遠足",
     "start_time": "2025-05-21T09:00:00+09:00",
-    "end_time": "2025-05-21T15:00:00+09:00"
+    "end_time": "2025-05-21T15:00:00+09:00",
+    "location": "東京"
   },
   {
     "event_id": "abc123xyz",
     "title": "出張（名古屋）",
     "start_time": "2025-05-22T10:00:00+09:00",
-    "end_time": "2025-05-22T17:00:00+09:00"
+    "end_time": "2025-05-22T17:00:00+09:00",
+    "location": "東京"
   }
 ]
 ```
@@ -247,6 +249,7 @@ checklists 配下の項目
 | `title`      | string | イベントのタイトル           |
 | `start_time` | string | イベント開始日時（ISO 形式） |
 | `end_time`   | string | イベント終了日時（ISO 形式） |
+| `location`   | string | イベントの開催場所           |
 
 ---
 

@@ -2,6 +2,7 @@ import 'package:app/firebase_options.dart';
 import 'package:app/providers/chat_provider.dart';
 import 'package:app/screens/add_schedule_screen.dart';
 import 'package:app/screens/welcome_screen.dart';
+import 'package:app/services/fcm_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'constants/theme.dart';
@@ -21,8 +22,11 @@ void main() async {
   );
   // 匿名ログインを実行
   await AuthService.signInAnonymously();
+  await FCMService().init();
   runApp(const MyApp());
 }
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -49,6 +53,7 @@ class MyApp extends StatelessWidget {
           final tutorialCompleted = prefsProvider.preferences.tutorialCompleted;
 
           return MaterialApp(
+            navigatorKey: navigatorKey,
             title: 'Miralife',
             theme: AppTheme.getTheme(themeColor),
             home:

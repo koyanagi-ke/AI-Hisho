@@ -86,7 +86,7 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
               startTime: _scheduleDetail!.startTime,
               endTime: _scheduleDetail!.endTime,
               location: _scheduleDetail!.location,
-              nextCheckDue: DateTime.parse(result['next_check_due']),
+              nextCheckDue: DateTime.parse(result['next_check_due']).toLocal(),
               checklists: _scheduleDetail!.checklists,
               weatherInfo: _scheduleDetail!.weatherInfo,
               weatherAdvice: _scheduleDetail!.weatherAdvice,
@@ -217,13 +217,13 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
         schedule.checklists.where((item) => item.checked).length;
     final totalCount = schedule.checklists.length;
     final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
-    final startDate = DateFormat('M月d日（E）', 'ja').format(schedule.startTime);
+    final startDate = DateFormat('M月d日（E）').format(schedule.startTime);
     final startTime = DateFormat('HH:mm').format(schedule.startTime);
     final endTime = DateFormat('HH:mm').format(schedule.endTime);
     final isSameDay = DateUtils.isSameDay(schedule.startTime, schedule.endTime);
     final timeDisplay = isSameDay
         ? '$startDate $startTime 〜 $endTime'
-        : '$startDate 〜 ${DateFormat('M月d日（E）', 'ja').format(schedule.endTime)}';
+        : '$startDate 〜 ${DateFormat('M月d日（E）').format(schedule.endTime)}';
 
     return Container(
       padding: const EdgeInsets.all(20),

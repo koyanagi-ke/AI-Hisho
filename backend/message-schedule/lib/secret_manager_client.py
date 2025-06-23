@@ -20,7 +20,7 @@ def get_gemini_api_key():
 def setup_firebase_credentials_env():
     # Secret取得
     client = secretmanager.SecretManagerServiceClient()
-    name = "projects/131464926474/secrets/firebase-credentials/versions/latest"
+    name = "projects/131464926474/secrets/FIREBASE_CREDENTIALS/versions/latest"
     response = client.access_secret_version(request={"name": name})
     json_str = response.payload.data.decode("UTF-8")
 

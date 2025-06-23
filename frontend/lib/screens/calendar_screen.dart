@@ -20,7 +20,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
   List<Schedule> _selectedDateSchedules = [];
   Map<String, List<Schedule>> _monthSchedules = {};
   bool _isLoading = false;
-  String? _error;
 
   @override
   void initState() {
@@ -32,7 +31,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
   Future<void> _loadMonthSchedules() async {
     setState(() {
       _isLoading = true;
-      _error = null;
     });
 
     try {
@@ -61,12 +59,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
         });
       } else {
         setState(() {
-          _error = 'スケジュールの取得に失敗しました';
+          _isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        _error = 'エラーが発生しました: $e';
+        _isLoading = false;
       });
     } finally {
       setState(() {
@@ -137,7 +135,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
     return ThemeBuilder(builder: (context, primaryColor) {
       return CommonLayout(
         appBar: AppBar(
-          title: Text(DateFormat('yyyy年M月', 'ja').format(_currentMonth)),
+          title: Text(DateFormat('yyyy年M月').format(_currentMonth)),
           centerTitle: true,
           leading: IconButton(
             icon: Icon(Icons.chevron_left, color: primaryColor),

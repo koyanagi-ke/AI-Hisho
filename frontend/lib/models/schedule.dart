@@ -17,8 +17,8 @@ class Schedule {
     return Schedule(
       eventId: json['event_id'],
       title: json['title'],
-      startTime: DateTime.parse(json['start_time']),
-      endTime: DateTime.parse(json['end_time']),
+      startTime: DateTime.parse(json['start_time']).toLocal(),
+      endTime: DateTime.parse(json['end_time']).toLocal(),
       location: json['location'],
     );
   }

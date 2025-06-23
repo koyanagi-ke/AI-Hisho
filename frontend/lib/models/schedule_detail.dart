@@ -99,11 +99,11 @@ class ScheduleDetail {
     return ScheduleDetail(
       id: json['id'] ?? '',
       title: json['title'] ?? '',
-      startTime: DateTime.parse(json['start_time']),
-      endTime: DateTime.parse(json['end_time']),
+      startTime: DateTime.parse(json['start_time']).toLocal(),
+      endTime: DateTime.parse(json['end_time']).toLocal(),
       location: json['location'] ?? '',
       nextCheckDue: json['next_check_due'] != null
-          ? DateTime.parse(json['next_check_due'])
+          ? DateTime.parse(json['next_check_due']).toLocal()
           : null,
       checklists: checklists,
       weatherInfo: weatherInfo,

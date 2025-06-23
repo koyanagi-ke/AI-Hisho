@@ -186,7 +186,6 @@ class _ScheduleCardState extends State<ScheduleCard> {
                 child: IntrinsicHeight(
                   child: Row(
                     children: [
-                      // 左側のカラーボーダー
                       Container(
                         width: 6,
                         decoration: BoxDecoration(
@@ -213,12 +212,8 @@ class _ScheduleCardState extends State<ScheduleCard> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-
-                              // 時間情報
                               _buildTimeInfo(),
                               const SizedBox(height: 8),
-
-                              // 場所情報
                               _buildLocationInfo(),
                             ],
                           ),
@@ -257,12 +252,11 @@ class _ScheduleCardState extends State<ScheduleCard> {
   Widget _buildTimeInfo() {
     final startTime = DateFormat('HH:mm').format(widget.schedule.startTime);
     final endTime = DateFormat('HH:mm').format(widget.schedule.endTime);
-
     final isSameDay =
         DateUtils.isSameDay(widget.schedule.startTime, widget.schedule.endTime);
     final timeDisplay = isSameDay
         ? '$startTime - $endTime'
-        : '${DateFormat('M月d日', 'ja').format(widget.schedule.startTime)} - ${DateFormat('M月d日', 'ja').format(widget.schedule.endTime)}';
+        : '${DateFormat('M月d日').format(widget.schedule.startTime)} - ${DateFormat('M月d日').format(widget.schedule.endTime)}';
 
     return Row(
       children: [

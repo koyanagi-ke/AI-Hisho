@@ -19,6 +19,7 @@ def get_gemini_api_key():
 
 def setup_firebase_credentials_env():
     # Secret取得
+    os.environ.pop("GOOGLE_APPLICATION_CREDENTIALS", None)
     client = secretmanager.SecretManagerServiceClient()
     secret_path = "projects/131464926474/secrets/FIREBASE_CREDENTIALS/versions/latest"
     response = client.access_secret_version(request={"name": secret_path})

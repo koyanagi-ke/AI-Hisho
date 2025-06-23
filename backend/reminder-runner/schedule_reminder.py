@@ -63,7 +63,7 @@ def _send_fcm(user_id: str, tokens: list[str], events_dict: list[dict], events: 
     )
     message = messaging.MulticastMessage(notification=notification, tokens=tokens)
 
-    response = messaging.send_multicast(message)
+    response = messaging.send_each_for_multicast(message)
     logger.info(
         f"[{user_id}] 成功={response.success_count}, 失敗={response.failure_count}"
     )

@@ -68,4 +68,19 @@ class ScheduleApi {
       endTime: endOfDay,
     );
   }
+
+  // 予定を削除
+  static Future<bool> deleteSchedule(String eventId) async {
+    final body = {
+      "id": eventId,
+    };
+
+    final result = await ApiService.request(
+      path: '/api/crud-schedule',
+      method: 'DELETE',
+      body: body,
+    );
+
+    return result != null;
+  }
 }

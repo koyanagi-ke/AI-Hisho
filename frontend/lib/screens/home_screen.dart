@@ -119,7 +119,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ..._schedules.map((schedule) => ScheduleCard(
                       schedule: schedule,
                       primaryColor: primaryColor,
-                      showChecklistButton: true,
                     )),
               ],
             ],

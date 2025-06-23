@@ -175,7 +175,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
                             child: ScheduleCard(
                               schedule: schedule,
                               primaryColor: primaryColor,
-                              showChecklistButton: true,
                             ),
                           );
                         },
@@ -395,7 +394,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
           child: ScheduleCard(
             schedule: schedule,
             primaryColor: primaryColor,
-            showChecklistButton: true,
           ),
         );
       },

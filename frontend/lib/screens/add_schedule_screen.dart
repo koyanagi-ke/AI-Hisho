@@ -1,4 +1,5 @@
 import 'package:app/utils/date_format_utils.dart';
+import 'package:app/utils/show_custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
@@ -154,15 +155,12 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
       );
 
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('予定を保存しました'),
-            backgroundColor: Colors.green,
-            duration: Duration(milliseconds: 1000),
-          ),
-        );
-        await Future.delayed(const Duration(milliseconds: 1100));
         Navigator.of(context).pop();
+        showCustomToast(
+          context,
+          '予定を保存しました',
+          backgroundColor: Colors.green,
+        );
       } else {
         _showErrorSnackBar('予定の保存に失敗しました');
       }
@@ -176,8 +174,10 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    showCustomToast(
+      context,
+      message,
+      backgroundColor: Colors.red,
     );
   }
 

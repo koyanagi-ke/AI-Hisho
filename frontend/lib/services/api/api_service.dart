@@ -33,7 +33,8 @@ class ApiService {
           response = await http.get(url, headers: headers);
           break;
         case 'DELETE':
-          response = await http.delete(url, headers: headers);
+          response =
+              await http.delete(url, headers: headers, body: jsonEncode(body));
           break;
         default:
           throw UnsupportedError('HTTP method $method not supported');
@@ -41,7 +42,6 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        print(decoded);
         return decoded as T;
       } else {
         print('API Error: ${response.statusCode} - ${response.body}');

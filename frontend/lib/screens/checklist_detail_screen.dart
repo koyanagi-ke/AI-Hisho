@@ -1,3 +1,4 @@
+import 'package:app/utils/show_custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -92,30 +93,23 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
             );
           }
         });
-
-        _scaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(!item.checked
-                ? '${item.item}の準備を完了しました'
-                : '${item.item}を未完了にしました'),
-            backgroundColor: !item.checked ? Colors.green : Colors.orange,
-            duration: const Duration(milliseconds: 1200),
-          ),
+        showCustomToast(
+          context,
+          !item.checked ? '${item.item}の準備を完了しました' : '${item.item}を未完了にしました',
+          backgroundColor: !item.checked ? Colors.green : Colors.orange,
         );
       } else {
-        _scaffoldMessengerKey.currentState?.showSnackBar(
-          const SnackBar(
-            content: Text('チェックリストの更新に失敗しました'),
-            backgroundColor: Colors.red,
-          ),
+        showCustomToast(
+          context,
+          'チェックリストの更新に失敗しました',
+          backgroundColor: Colors.red,
         );
       }
     } catch (e) {
-      _scaffoldMessengerKey.currentState?.showSnackBar(
-        SnackBar(
-          content: Text('エラーが発生しました: $e'),
-          backgroundColor: Colors.red,
-        ),
+      showCustomToast(
+        context,
+        'エラーが発生しました: $e',
+        backgroundColor: Colors.red,
       );
     }
   }

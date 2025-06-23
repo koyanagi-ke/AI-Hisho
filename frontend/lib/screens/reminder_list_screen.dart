@@ -167,9 +167,8 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
             ..._schedules.map((schedule) => ScheduleCard(
                   schedule: schedule,
                   primaryColor: primaryColor,
-                  showChecklistButton: true,
                 )),
-            const SizedBox(height: 100), // ボトムナビゲーション用のスペース
+            const SizedBox(height: 100),
           ],
         ),
       ),

@@ -37,13 +37,13 @@ class AppFooter extends StatelessWidget {
               primaryColor: primaryColor,
               onTap: () => onTap(0),
             ),
-            // _buildNavItem(
-            //   icon: Icons.checklist,
-            //   label: 'チェックリスト',
-            //   isSelected: ModalRoute.of(context)?.settings.name == '/checklist',
-            //   primaryColor: primaryColor,
-            //   onTap: () => onTap(1),
-            // ),
+            _buildNavItem(
+              icon: Icons.checklist,
+              label: 'チェックリスト',
+              isSelected: ModalRoute.of(context)?.settings.name == '/checklist',
+              primaryColor: primaryColor,
+              onTap: () => onTap(1),
+            ),
             const SizedBox(width: 40), // FAB用のスペース
             _buildNavItem(
               icon: Icons.calendar_month,
@@ -52,13 +52,13 @@ class AppFooter extends StatelessWidget {
               primaryColor: primaryColor,
               onTap: () => onTap(2),
             ),
-            // _buildNavItem(
-            //   icon: Icons.person,
-            //   label: '設定',
-            //   isSelected: ModalRoute.of(context)?.settings.name == '/profile',
-            //   primaryColor: primaryColor,
-            //   onTap: () => onTap(3),
-            // ),
+            _buildNavItem(
+              icon: Icons.person,
+              label: '設定',
+              isSelected: ModalRoute.of(context)?.settings.name == '/profile',
+              primaryColor: primaryColor,
+              onTap: () => onTap(3),
+            ),
           ],
         ),
       );

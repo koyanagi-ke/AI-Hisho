@@ -1,4 +1,3 @@
-import 'package:app/utils/show_custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../constants/colors.dart';
@@ -9,11 +8,13 @@ import '../../services/api/schedule_api.dart';
 class ScheduleCard extends StatefulWidget {
   final Schedule schedule;
   final Color primaryColor;
+  final VoidCallback? onDeleted;
 
   const ScheduleCard({
     super.key,
     required this.schedule,
     required this.primaryColor,
+    this.onDeleted,
   });
 
   @override
@@ -30,17 +31,14 @@ class _ScheduleCardState extends State<ScheduleCard> {
     final endHour = widget.schedule.endTime.hour;
     final isSameDay =
         DateUtils.isSameDay(widget.schedule.startTime, widget.schedule.endTime);
-
     if (!isSameDay) {
       return Colors.purple[600]!;
     }
-
     final duration =
         widget.schedule.endTime.difference(widget.schedule.startTime).inHours;
     if (duration >= 8) {
       return Colors.red[600]!;
     }
-
     if (endHour <= 12) {
       return Colors.blue[600]!;
     }
@@ -63,16 +61,26 @@ class _ScheduleCardState extends State<ScheduleCard> {
       final success = await ScheduleApi.deleteSchedule(widget.schedule.eventId);
 
       if (success) {
+        // 親に削除を通知
+        if (widget.onDeleted != null) {
+          widget.onDeleted!();
+        }
+
         setState(() {
           _isDeleted = true;
           _isDeleting = false;
         });
 
         if (mounted) {
-          showCustomToast(
-            context,
-            '「${widget.schedule.title}」を削除しました',
-            backgroundColor: Colors.green,
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('「${widget.schedule.title}」を削除しました'),
+              backgroundColor: Colors.green,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
           );
         }
         return true;
@@ -82,25 +90,29 @@ class _ScheduleCardState extends State<ScheduleCard> {
         });
 
         if (mounted) {
-          showCustomToast(
-            context,
-            '予定の削除に失敗しました',
-            backgroundColor: Colors.red,
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('予定の削除に失敗しました'),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+            ),
           );
         }
         return false;
       }
     } catch (e) {
-      print('Delete error: $e');
+      print('Delete error: $e'); // デバッグ用
       setState(() {
         _isDeleting = false;
       });
 
       if (mounted) {
-        showCustomToast(
-          context,
-          'エラーが発生しました: $e',
-          backgroundColor: Colors.red,
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('エラーが発生しました: $e'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
       return false;
@@ -219,6 +231,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                           ),
                         ),
                       ),
+                      // 右側の矢印アイコン
                       Padding(
                         padding: const EdgeInsets.only(right: 16),
                         child: _isDeleting
@@ -252,11 +265,15 @@ class _ScheduleCardState extends State<ScheduleCard> {
   Widget _buildTimeInfo() {
     final startTime = DateFormat('HH:mm').format(widget.schedule.startTime);
     final endTime = DateFormat('HH:mm').format(widget.schedule.endTime);
+    final isToday =
+        DateUtils.isSameDay(widget.schedule.startTime, DateTime.now());
     final isSameDay =
         DateUtils.isSameDay(widget.schedule.startTime, widget.schedule.endTime);
-    final timeDisplay = isSameDay
+    final timeDisplay = isToday
         ? '$startTime - $endTime'
-        : '${DateFormat('M月d日').format(widget.schedule.startTime)} - ${DateFormat('M月d日').format(widget.schedule.endTime)}';
+        : isSameDay
+            ? '${DateFormat('M月d日').format(widget.schedule.startTime)} $startTime - $endTime'
+            : '${DateFormat('M月d日').format(widget.schedule.startTime)} - ${DateFormat('M月d日').format(widget.schedule.endTime)}';
 
     return Row(
       children: [

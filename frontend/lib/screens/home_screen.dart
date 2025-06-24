@@ -1,4 +1,5 @@
 import 'package:app/constants/colors.dart';
+import 'package:app/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/api/schedule_api.dart';
@@ -297,14 +298,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         const SizedBox(height: 16),
-
-        // コンテンツ
         if (_isLoadingSchedules) ...[
-          const Center(child: CircularProgressIndicator()),
+          Center(
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: CircularProgressIndicator(color: primaryColor)))
         ] else if (_schedulesError != null) ...[
           _buildErrorState(primaryColor, _schedulesError!, _loadSchedules),
         ] else if (_schedules.isEmpty) ...[
-          _buildEmptySchedulesState(),
+          EmptyState(
+            icon: Icons.event_available_rounded,
+            title: 'この日の予定はありません',
+            subtitle: 'ゆっくりお過ごしください',
+            iconColor: primaryColor,
+          ),
         ] else ...[
           ..._schedules.map((schedule) => ScheduleCard(
                 schedule: schedule,
@@ -342,15 +349,21 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ],
           const SizedBox(height: 16),
-
-          // コンテンツ
           if (_isLoadingReminders) ...[
-            const Center(child: CircularProgressIndicator()),
+            Center(
+                child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 60),
+                    child: CircularProgressIndicator(color: primaryColor)))
           ] else if (_remindersError != null) ...[
             _buildErrorState(
                 Colors.blue, _remindersError!, _loadReminderSchedules),
           ] else if (_reminderSchedules.isEmpty) ...[
-            _buildEmptyRemindersState(),
+            EmptyState(
+              icon: Icons.check_circle_outline,
+              title: '今日準備が必要なことはありません',
+              subtitle: 'お疲れ様でした！',
+              iconColor: primaryColor,
+            ),
           ] else ...[
             ..._reminderSchedules.map((schedule) => ScheduleCard(
                   schedule: schedule,
@@ -448,72 +461,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 foregroundColor: Colors.white,
               ),
               child: const Text('再試行'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptySchedulesState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 60),
-        child: Column(
-          children: [
-            Icon(
-              Icons.event_available_rounded,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'この日の予定はありません',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.gray600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'ゆっくりお過ごしください',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.gray500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyRemindersState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        child: Column(
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              size: 48,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              '今日準備が必要な予定はありません',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.gray600,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'お疲れ様でした！',
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.gray500,
-              ),
             ),
           ],
         ),

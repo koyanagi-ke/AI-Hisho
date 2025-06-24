@@ -1,3 +1,4 @@
+import 'package:app/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../constants/colors.dart';
@@ -235,7 +236,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
           Expanded(
             child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? Center(child: CircularProgressIndicator(color: primaryColor))
                 : Container(
                     padding: const EdgeInsets.all(4),
                     child: GridView.builder(
@@ -343,41 +344,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildSelectedDateSchedules(Color primaryColor) {
     if (_selectedDateSchedules.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Icon(
-                Icons.event_available_rounded,
-                size: 48,
-                color: Colors.grey[400],
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'この日の予定はありません',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'ゆっくりお過ごしください',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[500],
-              ),
-            ),
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.event_available_rounded,
+        title: 'この日の予定はありません',
+        subtitle: 'ゆっくりお過ごしください',
+        iconColor: primaryColor,
       );
     }
 

@@ -347,13 +347,11 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                           ),
                         ),
                         child: _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
+                                  color: primaryColor,
                                 ),
                               )
                             : const Text('AI解析'),
@@ -540,14 +538,11 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                           ),
                         ),
                         child: _isLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 20,
                                 width: 20,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                ),
+                                    color: primaryColor),
                               )
                             : const Text(
                                 '予定を保存',

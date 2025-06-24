@@ -1,8 +1,9 @@
+import 'package:app/constants/colors.dart';
 import 'package:app/models/chat_message.dart';
 import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../constants/characters.dart';
 import '../providers/chat_provider.dart';
 import '../providers/preferences_provider.dart';
@@ -16,6 +17,7 @@ class ChatBot extends StatefulWidget {
 
 class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   OverlayEntry? _overlayEntry;
@@ -41,6 +43,7 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
   @override
   void dispose() {
     _textController.dispose();
+    _focusNode.dispose();
     _animationController.dispose();
     _overlayEntry?.remove();
     super.dispose();
@@ -54,12 +57,18 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
     } else {
       _animationController.forward();
       _overlayEntry = OverlayEntry(
-          builder: (_) => _ChatOverlay(
-                animation: _scaleAnimation,
-                textController: _textController,
-                onClose: _toggleChat,
-              ));
+        builder: (_) => _ChatOverlay(
+          animation: _scaleAnimation,
+          textController: _textController,
+          focusNode: _focusNode,
+          onClose: _toggleChat,
+        ),
+      );
       Overlay.of(context).insert(_overlayEntry!);
+
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _focusNode.requestFocus();
+      });
     }
   }
 
@@ -94,11 +103,13 @@ class _ChatBotState extends State<ChatBot> with SingleTickerProviderStateMixin {
 class _ChatOverlay extends StatelessWidget {
   final Animation<double> animation;
   final TextEditingController textController;
+  final FocusNode focusNode;
   final VoidCallback onClose;
 
   const _ChatOverlay({
     required this.animation,
     required this.textController,
+    required this.focusNode,
     required this.onClose,
   });
 
@@ -153,18 +164,14 @@ class _ChatOverlay extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              Image.asset(
-                                assistantCharacter.imagePath,
-                                width: 32,
-                                height: 32,
-                              ),
+                              Image.asset(assistantCharacter.imagePath,
+                                  width: 32, height: 32),
                               const SizedBox(width: 8),
                               Text(
                                 'AIアシスタント',
                                 style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: primaryColor,
-                                ),
+                                    fontWeight: FontWeight.bold,
+                                    color: primaryColor),
                               ),
                               const Spacer(),
                               IconButton(
@@ -182,11 +189,8 @@ class _ChatOverlay extends StatelessWidget {
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Image.asset(
-                                        assistantCharacter.imagePath,
-                                        width: 80,
-                                        height: 80,
-                                      ),
+                                      Image.asset(assistantCharacter.imagePath,
+                                          width: 80, height: 80),
                                       const SizedBox(height: 16),
                                       Text(
                                         'こんにちは！何かお手伝いできることはありますか？',
@@ -207,11 +211,12 @@ class _ChatOverlay extends StatelessWidget {
                                             1 -
                                             index];
                                     return _buildMessageBubble(
-                                        message,
-                                        primaryColor,
-                                        chatProvider.isTyping,
-                                        prefsProvider
-                                            .preferences.assistantCharacter);
+                                      message,
+                                      primaryColor,
+                                      chatProvider.isTyping,
+                                      prefsProvider
+                                          .preferences.assistantCharacter,
+                                    );
                                   },
                                 ),
                         ),
@@ -219,16 +224,16 @@ class _ChatOverlay extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 8, vertical: 8),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Colors.transparent,
                             border: Border(
-                              top: BorderSide(color: Colors.grey[200]!),
-                            ),
+                                top: BorderSide(color: Colors.grey[200]!)),
                           ),
                           child: Row(
                             children: [
                               Expanded(
                                 child: TextField(
                                   controller: textController,
+                                  focusNode: focusNode,
                                   decoration: InputDecoration(
                                     hintText: 'メッセージを入力...',
                                     border: OutlineInputBorder(

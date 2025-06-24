@@ -145,8 +145,8 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
 
   Widget _buildBody(Color primaryColor) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return Center(
+        child: CircularProgressIndicator(color: primaryColor),
       );
     }
 

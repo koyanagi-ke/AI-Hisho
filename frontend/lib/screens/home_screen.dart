@@ -299,7 +299,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
         const SizedBox(height: 16),
         if (_isLoadingSchedules) ...[
-          Center(child: CircularProgressIndicator(color: primaryColor)),
+          Center(
+              child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 60),
+                  child: CircularProgressIndicator(color: primaryColor)))
         ] else if (_schedulesError != null) ...[
           _buildErrorState(primaryColor, _schedulesError!, _loadSchedules),
         ] else if (_schedules.isEmpty) ...[
@@ -347,7 +350,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
           const SizedBox(height: 16),
           if (_isLoadingReminders) ...[
-            Center(child: CircularProgressIndicator(color: primaryColor)),
+            Center(
+                child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 60),
+                    child: CircularProgressIndicator(color: primaryColor)))
           ] else if (_remindersError != null) ...[
             _buildErrorState(
                 Colors.blue, _remindersError!, _loadReminderSchedules),

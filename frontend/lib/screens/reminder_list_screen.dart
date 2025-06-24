@@ -81,8 +81,9 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
   Widget _buildBody(Color primaryColor) {
     if (_isLoading) {
       return Center(
-        child: CircularProgressIndicator(color: primaryColor),
-      );
+          child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 60),
+              child: CircularProgressIndicator(color: primaryColor)));
     }
 
     if (_error != null) {

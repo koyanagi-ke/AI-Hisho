@@ -26,6 +26,7 @@ class AppFooter extends StatelessWidget {
 
     return ThemeBuilder(builder: (context, primaryColor) {
       return BottomAppBar(
+        color: Colors.white,
         shape: const CircularNotchedRectangle(),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,

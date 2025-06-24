@@ -44,6 +44,7 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<PreferencesProvider>(
         builder: (context, prefsProvider, child) {
+          // TODO みらいふアイコンにする
           if (prefsProvider.isLoading) {
             return const MaterialApp(
               home: Scaffold(

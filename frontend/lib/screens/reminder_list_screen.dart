@@ -1,5 +1,6 @@
 import 'package:app/widgets/common/common_layout.dart';
 import 'package:app/widgets/common/theme_builder.dart';
+import 'package:app/widgets/empty_state.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/colors.dart';
@@ -79,8 +80,8 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
 
   Widget _buildBody(Color primaryColor) {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(),
+      return Center(
+        child: CircularProgressIndicator(color: primaryColor),
       );
     }
 
@@ -118,33 +119,11 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
     }
 
     if (_schedules.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.check_circle_outline,
-              size: 64,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              '今日準備が必要な予定はありません',
-              style: TextStyle(
-                fontSize: 16,
-                color: AppColors.gray600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'お疲れ様でした！',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.gray500,
-              ),
-            ),
-          ],
-        ),
+      return EmptyState(
+        icon: Icons.check_circle_outline,
+        title: '今日準備が必要なことはありません',
+        subtitle: 'お疲れ様でした！',
+        iconColor: primaryColor,
       );
     }
 

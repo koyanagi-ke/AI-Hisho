@@ -18,7 +18,6 @@ class ReminderApi {
 
         return list.map(Schedule.fromJson).toList();
       } catch (e) {
-        debugPrint('Error parsing reminder schedules: $e');
         return null;
       }
     }

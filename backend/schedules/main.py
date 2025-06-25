@@ -7,7 +7,7 @@ from datetime import datetime
 
 from user_context import get_user_id_from_request
 from http_utils import parse_json_body
-from db_access import get_schedules_by_user_and_period 
+from db_access import get_schedules_by_user_and_period
 
 # ロガーインスタンス作成
 logger = logging.getLogger(__name__)
@@ -19,6 +19,7 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+
 def to_iso(dt):
     # Firestore Timestamp型やdatetime型をISO8601文字列に変換
     if hasattr(dt, "isoformat"):
@@ -28,6 +29,7 @@ def to_iso(dt):
         return dt.ToDatetime().isoformat()
     except Exception:
         return str(dt)
+
 
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -45,6 +47,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             body = parse_json_body(self)
             start_time = datetime.fromisoformat(body.get("start_time"))
             end_time = datetime.fromisoformat(body.get("end_time"))
+            logger.info(start_time)
+            logger.info(end_time)
 
             # DB検索
             records = get_schedules_by_user_and_period(user_id, start_time, end_time)
@@ -60,7 +64,7 @@ class RequestHandler(BaseHTTPRequestHandler):
                 }
                 result.append(item)
 
-            #レスポンス
+            # レスポンス
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()

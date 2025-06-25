@@ -7,8 +7,8 @@ def get_schedules_by_user_and_period(user_id, start_time, end_time):
     collection = db.collection("users").document(user_id).collection("events")
 
     filters = [
-        ("start_time", ">=", start_time),
         ("start_time", "<", end_time),
+        ("end_time", ">", start_time),
     ]
 
     field_filters = [FieldFilter(field, op, val) for field, op, val in filters]

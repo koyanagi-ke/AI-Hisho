@@ -3,7 +3,7 @@ import logging
 import os
 import json
 import google.cloud.firestore
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 from user_context import get_user_id_from_request
 from http_utils import parse_json_body
@@ -20,6 +20,9 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 
 
+JST = timezone(timedelta(hours=9))
+
+
 def to_iso(dt):
     # Firestore Timestamp型やdatetime型をISO8601文字列に変換
     if hasattr(dt, "isoformat"):
@@ -29,6 +32,18 @@ def to_iso(dt):
         return dt.ToDatetime().isoformat()
     except Exception:
         return str(dt)
+
+
+def parse_datetime_field(value: str) -> datetime:
+    """ISO形式の日時文字列をdatetime型に変換（JSTに補正）"""
+    if value.endswith("Z"):
+        # ZはUTCを示す → JSTに変換
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        return dt.astimezone(JST)
+    else:
+        dt = datetime.fromisoformat(value)
+        # タイムゾーンがなければ JST を付ける
+        return dt if dt.tzinfo else dt.replace(tzinfo=JST)
 
 
 class RequestHandler(BaseHTTPRequestHandler):
@@ -45,8 +60,8 @@ class RequestHandler(BaseHTTPRequestHandler):
             user_id = get_user_id_from_request(self.headers)
 
             body = parse_json_body(self)
-            start_time = datetime.fromisoformat(body.get("start_time"))
-            end_time = datetime.fromisoformat(body.get("end_time"))
+            start_time = parse_datetime_field(body.get("start_time"))
+            end_time = parse_datetime_field(body.get("end_time"))
             logger.info(start_time)
             logger.info(end_time)
 

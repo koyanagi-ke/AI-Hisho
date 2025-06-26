@@ -12,12 +12,10 @@ class FCMService {
     String? token;
     try {
       token = await _messaging.getToken();
-      debugPrint('FCMトークン: $token');
     } catch (e) {
       // Simulatorではトークン取得できない
       debugPrint('トークン取得エラー: $e');
     }
-    debugPrint('token: $token');
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
     if (token != null && uid != null) {

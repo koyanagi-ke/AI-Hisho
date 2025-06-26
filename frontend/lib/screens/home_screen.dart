@@ -172,14 +172,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 準備が必要な予定の通知（今日かつ準備が必要な予定がある場合のみ）
-            if (isToday &&
-                _reminderSchedules.isNotEmpty &&
-                !_isLoadingReminders) ...[
-              _buildReminderNotificationCard(primaryColor),
-              const SizedBox(height: 20),
-            ],
-
             // 今日の予定セクション
             _buildSchedulesSection(primaryColor),
 
@@ -190,79 +182,6 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
 
             const SizedBox(height: 100),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReminderNotificationCard(Color primaryColor) {
-    return GestureDetector(
-      onTap: _scrollToReminderSection,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.blue.withOpacity(0.15),
-              Colors.blue.withOpacity(0.08)
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.blue.withOpacity(0.3)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.notifications_active_rounded,
-                color: Colors.blue,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${_reminderSchedules.length}件の予定で準備が必要です',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'タップして準備リストを確認',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.gray600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.keyboard_arrow_down_rounded,
-              color: Colors.blue,
-              size: 24,
-            ),
           ],
         ),
       ),

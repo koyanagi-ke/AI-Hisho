@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:app/utils/date_format_utils.dart';
 import 'package:app/utils/show_custom_toast.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import '../models/schedule_event.dart';
 import '../widgets/input/labeled_text_field.dart';
 import '../widgets/common/common_layout.dart';
 import '../widgets/common/theme_builder.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 class AddScheduleScreen extends StatefulWidget {
   const AddScheduleScreen({super.key});
@@ -38,6 +40,8 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   late DateTime _notifyDate;
   late TimeOfDay _notifyTime;
 
+  StreamSubscription? _intentDataStreamSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -48,10 +52,46 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
     final now = TimeOfDay.now();
     _endTime = now.replacing(hour: (now.hour + 1) % 24);
     _notifyTime = now.replacing(hour: (now.hour - 1 + 24) % 24);
+
+    // シェア受信（アプリ起動中）
+    _intentDataStreamSubscription = ReceiveSharingIntent.instance
+        .getMediaStream()
+        .listen((List<SharedMediaFile> value) {
+      setState(() {
+        // テキストのみ抽出
+        final textFile = value.firstWhere(
+          (f) => f.type == SharedMediaType.text,
+          orElse: () => SharedMediaFile(path: '', type: SharedMediaType.text),
+        );
+        if (textFile.path.isNotEmpty) {
+          _naturalLanguageController.text = textFile.path;
+        }
+      });
+    }, onError: (err) {});
+
+    // アプリが閉じていた場合
+    ReceiveSharingIntent.instance
+        .getInitialMedia()
+        .then((List<SharedMediaFile> value) {
+      if (value.isNotEmpty) {
+        final textFile = value.firstWhere(
+          (f) => f.type == SharedMediaType.text,
+          orElse: () => SharedMediaFile(path: '', type: SharedMediaType.text),
+        );
+        if (textFile.path.isNotEmpty) {
+          setState(() {
+            _naturalLanguageController.text = textFile.path;
+          });
+        }
+        // intentのリセット
+        ReceiveSharingIntent.instance.reset();
+      }
+    });
   }
 
   @override
   void dispose() {
+    _intentDataStreamSubscription?.cancel();
     _naturalLanguageController.dispose();
     _titleController.dispose();
     _locationController.dispose();

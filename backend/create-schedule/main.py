@@ -89,7 +89,7 @@ class RequestHandler(BaseHTTPRequestHandler):
         try:
             user_id = get_user_id_from_request(self.headers)
             data = parse_json_body(self)
-            event_id = data.get("id")
+            event_id = data.get("event_id")
             if not event_id:
                 respond(self, 400, "event ID が必要です")
                 return

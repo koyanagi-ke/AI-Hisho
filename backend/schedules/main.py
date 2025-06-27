@@ -76,6 +76,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                     "start_time": to_iso(rec.get("start_time")),
                     "end_time": to_iso(rec.get("end_time")),
                     "location": rec.get("location"),
+                    "notify_at": to_iso(rec.get("notify_at")),
+                    "address": rec.get("address"),
                 }
                 result.append(item)
 

@@ -44,6 +44,8 @@ class ScheduleApi {
       body: body,
     );
 
+    print(result);
+
     if (result != null && result is List<dynamic>) {
       try {
         return result
@@ -62,11 +64,40 @@ class ScheduleApi {
   static Future<List<Schedule>?> getDaySchedules(DateTime date) async {
     final startOfDay = DateTime(date.year, date.month, date.day, 0, 0, 0);
     final endOfDay = DateTime(date.year, date.month, date.day, 23, 59, 59);
-
     return await getSchedules(
       startTime: startOfDay,
       endTime: endOfDay,
     );
+  }
+
+  // 予定を更新
+  static Future<bool> updateSchedule({
+    required String id,
+    String? title,
+    String? startTime,
+    String? endTime,
+    String? location,
+    String? address,
+    String? notifyAt,
+  }) async {
+    final body = <String, dynamic>{
+      "id": id,
+    };
+
+    if (title != null) body["title"] = title;
+    if (startTime != null) body["start_time"] = startTime;
+    if (endTime != null) body["end_time"] = endTime;
+    if (location != null) body["location"] = location;
+    if (address != null) body["address"] = address;
+    if (notifyAt != null) body["notify_at"] = notifyAt;
+
+    final result = await ApiService.request(
+      path: '/api/crud-schedule',
+      method: 'PUT',
+      body: body,
+    );
+
+    return result != null;
   }
 
   // 予定を削除

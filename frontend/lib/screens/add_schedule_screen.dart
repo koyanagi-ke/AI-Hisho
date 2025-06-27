@@ -7,12 +7,15 @@ import '../constants/colors.dart';
 import '../services/api/event_api.dart';
 import '../services/api/schedule_api.dart';
 import '../models/schedule_event.dart';
+import '../models/schedule.dart';
 import '../widgets/input/labeled_text_field.dart';
 import '../widgets/common/common_layout.dart';
 import '../widgets/common/theme_builder.dart';
 
 class AddScheduleScreen extends StatefulWidget {
-  const AddScheduleScreen({super.key});
+  final Schedule? schedule; // 編集時に渡されるスケジュール
+
+  const AddScheduleScreen({super.key, this.schedule});
 
   @override
   State<AddScheduleScreen> createState() => _AddScheduleScreenState();
@@ -30,6 +33,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   bool _isAnalyzed = false;
   bool _notificationEnabled = false;
   bool _isAllDay = false;
+  bool _isEditMode = false;
 
   DateTime _startDate = DateTime.now();
   late TimeOfDay _startTime;
@@ -41,6 +45,40 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   @override
   void initState() {
     super.initState();
+    _isEditMode = widget.schedule != null;
+
+    if (_isEditMode) {
+      _initializeForEdit();
+    } else {
+      _initializeForAdd();
+    }
+  }
+
+  void _initializeForEdit() {
+    final schedule = widget.schedule!;
+    _titleController.text = schedule.title;
+    _locationController.text = schedule.location;
+    _addressController.text = '';
+    _startDate = schedule.startTime;
+    _startTime = TimeOfDay.fromDateTime(schedule.startTime);
+    _endDate = schedule.endTime;
+    _endTime = TimeOfDay.fromDateTime(schedule.endTime);
+
+    // 全日判定
+    _isAllDay = _startTime.hour == 0 &&
+        _startTime.minute == 0 &&
+        _endTime.hour == 23 &&
+        _endTime.minute == 59;
+
+    // 通知設定（仮で1時間前に設定）
+    _notifyDate = _startDate;
+    _notifyTime =
+        TimeOfDay.fromDateTime(_startDate.subtract(const Duration(hours: 1)));
+
+    _showManualForm = true;
+  }
+
+  void _initializeForAdd() {
     _startTime = TimeOfDay.now();
     _endDate = _startDate;
     _notifyDate = _startDate;
@@ -204,25 +242,43 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
         notifyAtString = toIso8601WithOffset(notifyDateTime);
       }
 
-      final success = await ScheduleApi.createSchedule(
-        title: _titleController.text,
-        startTime: toIso8601WithOffset(startDateTime),
-        endTime: toIso8601WithOffset(endDateTime),
-        location: _locationController.text,
-        address:
-            _addressController.text.isNotEmpty ? _addressController.text : null,
-        notifyAt: notifyAtString,
-      );
+      bool success;
+      if (_isEditMode) {
+        // 更新処理
+        success = await ScheduleApi.updateSchedule(
+          id: widget.schedule!.eventId,
+          title: _titleController.text,
+          startTime: toIso8601WithOffset(startDateTime),
+          endTime: toIso8601WithOffset(endDateTime),
+          location: _locationController.text,
+          address: _addressController.text.isNotEmpty
+              ? _addressController.text
+              : null,
+          notifyAt: notifyAtString,
+        );
+      } else {
+        // 新規作成処理
+        success = await ScheduleApi.createSchedule(
+          title: _titleController.text,
+          startTime: toIso8601WithOffset(startDateTime),
+          endTime: toIso8601WithOffset(endDateTime),
+          location: _locationController.text,
+          address: _addressController.text.isNotEmpty
+              ? _addressController.text
+              : null,
+          notifyAt: notifyAtString,
+        );
+      }
 
       if (success) {
         Navigator.of(context).pop();
         showCustomToast(
           context,
-          '予定を保存しました',
+          _isEditMode ? '予定を更新しました' : '予定を保存しました',
           backgroundColor: Colors.green,
         );
       } else {
-        _showErrorSnackBar('予定の保存に失敗しました');
+        _showErrorSnackBar(_isEditMode ? '予定の更新に失敗しました' : '予定の保存に失敗しました');
       }
     } catch (e) {
       _showErrorSnackBar('エラーが発生しました: $e');
@@ -557,7 +613,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
     return ThemeBuilder(builder: (context, primaryColor) {
       return CommonLayout(
         appBar: AppBar(
-          title: const Text('予定を追加'),
+          title: Text(_isEditMode ? '予定を編集' : '予定を追加'),
           centerTitle: true,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: primaryColor),
@@ -569,7 +625,8 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!_showManualForm) ...[
+              // AI予定作成は新規作成時のみ表示
+              if (!_showManualForm && !_isEditMode) ...[
                 Card(
                   color: Colors.white,
                   child: Padding(
@@ -670,7 +727,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                   ),
                 ),
               ],
-              if (_showManualForm) ...[
+              if (_showManualForm || _isEditMode) ...[
                 Card(
                   color: Colors.white,
                   child: Padding(
@@ -681,12 +738,18 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                         Row(
                           children: [
                             Icon(
-                              _isAnalyzed ? Icons.auto_awesome : Icons.edit,
+                              _isEditMode
+                                  ? Icons.edit
+                                  : (_isAnalyzed
+                                      ? Icons.auto_awesome
+                                      : Icons.edit),
                               color: primaryColor,
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              _isAnalyzed ? 'AI解析結果' : '予定の詳細',
+                              _isEditMode
+                                  ? '予定を編集'
+                                  : (_isAnalyzed ? 'AI解析結果' : '予定の詳細'),
                               style: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -831,9 +894,9 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                                           Colors.white),
                                     ),
                                   )
-                                : const Text(
-                                    '予定を保存',
-                                    style: TextStyle(
+                                : Text(
+                                    _isEditMode ? '予定を更新' : '予定を保存',
+                                    style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w500,
                                     ),

@@ -4,17 +4,18 @@ import '../../constants/colors.dart';
 import '../../models/schedule.dart';
 import '../../screens/checklist_detail_screen.dart';
 import '../../services/api/schedule_api.dart';
+import '../../screens/add_schedule_screen.dart';
 
 class ScheduleCard extends StatefulWidget {
   final Schedule schedule;
   final Color primaryColor;
-  final VoidCallback? onDeleted;
+  final VoidCallback? onDeleted; // 追加
 
   const ScheduleCard({
     super.key,
     required this.schedule,
     required this.primaryColor,
-    this.onDeleted,
+    this.onDeleted, // 追加
   });
 
   @override
@@ -31,23 +32,31 @@ class _ScheduleCardState extends State<ScheduleCard> {
     final endHour = widget.schedule.endTime.hour;
     final isSameDay =
         DateUtils.isSameDay(widget.schedule.startTime, widget.schedule.endTime);
+
+    // 二日以上にわたる場合
     if (!isSameDay) {
-      return Colors.purple[600]!;
+      return Colors.purple[600]!; // 紫色
     }
+
+    // 一日中（8時間以上）
     final duration =
         widget.schedule.endTime.difference(widget.schedule.startTime).inHours;
     if (duration >= 8) {
-      return Colors.red[600]!;
+      return Colors.red[600]!; // 赤色
     }
+
+    // 午前中のみ（12時前に終了）
     if (endHour <= 12) {
-      return Colors.blue[600]!;
+      return Colors.blue[600]!; // 青色
     }
 
+    // 午後のみ（12時以降に開始）
     if (startHour >= 12) {
-      return Colors.orange[600]!;
+      return Colors.orange[600]!; // オレンジ色
     }
 
-    return Colors.green[600]!;
+    // 午前から午後にかけて
+    return Colors.green[600]!; // 緑色
   }
 
   Future<bool> _deleteSchedule() async {
@@ -58,6 +67,8 @@ class _ScheduleCardState extends State<ScheduleCard> {
     });
 
     try {
+      print('Deleting schedule with ID: ${widget.schedule.eventId}'); // デバッグ用
+
       final success = await ScheduleApi.deleteSchedule(widget.schedule.eventId);
 
       if (success) {
@@ -130,6 +141,23 @@ class _ScheduleCardState extends State<ScheduleCard> {
     );
   }
 
+  void _navigateToEdit() {
+    Navigator.of(context)
+        .push(
+      MaterialPageRoute(
+        builder: (context) => AddScheduleScreen(
+          schedule: widget.schedule,
+        ),
+      ),
+    )
+        .then((_) {
+      // 編集後にリフレッシュが必要な場合
+      if (widget.onDeleted != null) {
+        widget.onDeleted!();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     // 削除済みの場合は非表示
@@ -155,7 +183,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
             color: Colors.red[400],
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
@@ -163,8 +191,8 @@ class _ScheduleCardState extends State<ScheduleCard> {
                 color: Colors.white,
                 size: 28,
               ),
-              SizedBox(height: 4),
-              Text(
+              const SizedBox(height: 4),
+              const Text(
                 '削除',
                 style: TextStyle(
                   color: Colors.white,
@@ -198,6 +226,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                 child: IntrinsicHeight(
                   child: Row(
                     children: [
+                      // 左側のカラーボーダー
                       Container(
                         width: 6,
                         decoration: BoxDecoration(
@@ -208,24 +237,47 @@ class _ScheduleCardState extends State<ScheduleCard> {
                           ),
                         ),
                       ),
+                      // メインコンテンツ
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                widget.schedule.title,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.gray900,
-                                  height: 1.2,
-                                ),
+                              // タイトル行に編集アイコンを追加
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      widget.schedule.title,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.gray900,
+                                        height: 1.2,
+                                      ),
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: _navigateToEdit,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      child: Icon(
+                                        Icons.edit,
+                                        size: 16,
+                                        color: AppColors.gray500,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                               const SizedBox(height: 12),
+
+                              // 時間情報
                               _buildTimeInfo(),
                               const SizedBox(height: 8),
+
+                              // 場所情報
                               _buildLocationInfo(),
                             ],
                           ),
@@ -235,7 +287,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                       Padding(
                         padding: const EdgeInsets.only(right: 16),
                         child: _isDeleting
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
@@ -245,7 +297,7 @@ class _ScheduleCardState extends State<ScheduleCard> {
                                   ),
                                 ),
                               )
-                            : const Icon(
+                            : Icon(
                                 Icons.chevron_right,
                                 color: AppColors.gray400,
                                 size: 24,
@@ -265,15 +317,12 @@ class _ScheduleCardState extends State<ScheduleCard> {
   Widget _buildTimeInfo() {
     final startTime = DateFormat('HH:mm').format(widget.schedule.startTime);
     final endTime = DateFormat('HH:mm').format(widget.schedule.endTime);
-    final isToday =
-        DateUtils.isSameDay(widget.schedule.startTime, DateTime.now());
+
     final isSameDay =
         DateUtils.isSameDay(widget.schedule.startTime, widget.schedule.endTime);
-    final timeDisplay = isToday
+    final timeDisplay = isSameDay
         ? '$startTime - $endTime'
-        : isSameDay
-            ? '${DateFormat('M月d日').format(widget.schedule.startTime)} $startTime - $endTime'
-            : '${DateFormat('M月d日').format(widget.schedule.startTime)} - ${DateFormat('M月d日').format(widget.schedule.endTime)}';
+        : '${DateFormat('M月d日', 'ja').format(widget.schedule.startTime)} - ${DateFormat('M月d日', 'ja').format(widget.schedule.endTime)}';
 
     return Row(
       children: [

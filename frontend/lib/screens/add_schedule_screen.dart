@@ -58,7 +58,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
     final schedule = widget.schedule!;
     _titleController.text = schedule.title;
     _locationController.text = schedule.location;
-    _addressController.text = '';
+    _addressController.text = schedule.address ?? '';
     _startDate = schedule.startTime;
     _startTime = TimeOfDay.fromDateTime(schedule.startTime);
     _endDate = schedule.endTime;
@@ -246,14 +246,12 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
       if (_isEditMode) {
         // 更新処理
         success = await ScheduleApi.updateSchedule(
-          id: widget.schedule!.eventId,
+          eventId: widget.schedule!.eventId,
           title: _titleController.text,
           startTime: toIso8601WithOffset(startDateTime),
           endTime: toIso8601WithOffset(endDateTime),
           location: _locationController.text,
-          address: _addressController.text.isNotEmpty
-              ? _addressController.text
-              : null,
+          address: _addressController.text,
           notifyAt: notifyAtString,
         );
       } else {
@@ -860,7 +858,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                         if (_notificationEnabled) ...[
                           const SizedBox(height: 8),
                           _buildDateTimeRow(
-                            label: '通知日時',
+                            label: '通知日',
                             date: _notifyDate,
                             time: _notifyTime,
                             onDateTap: () =>

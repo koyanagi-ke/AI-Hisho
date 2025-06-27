@@ -44,8 +44,6 @@ class ScheduleApi {
       body: body,
     );
 
-    print(result);
-
     if (result != null && result is List<dynamic>) {
       try {
         return result
@@ -53,7 +51,6 @@ class ScheduleApi {
             .map((item) => Schedule.fromJson(item))
             .toList();
       } catch (e) {
-        print('Error parsing schedules: $e');
         return null;
       }
     }
@@ -72,7 +69,7 @@ class ScheduleApi {
 
   // 予定を更新
   static Future<bool> updateSchedule({
-    required String id,
+    required String eventId,
     String? title,
     String? startTime,
     String? endTime,
@@ -81,7 +78,7 @@ class ScheduleApi {
     String? notifyAt,
   }) async {
     final body = <String, dynamic>{
-      "id": id,
+      "event_id": eventId,
     };
 
     if (title != null) body["title"] = title;

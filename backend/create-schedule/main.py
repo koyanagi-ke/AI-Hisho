@@ -94,8 +94,8 @@ class RequestHandler(BaseHTTPRequestHandler):
                 respond(self, 400, "event ID が必要です")
                 return
 
-            # idを取り除いてバリデーション
-            data_for_update = {k: v for k, v in data.items() if k != "id"}
+            # event_idを取り除いてバリデーション
+            data_for_update = {k: v for k, v in data.items() if k != "event_id"}
 
             data_for_update = validate_and_convert_event_data(
                 data_for_update, is_update=True

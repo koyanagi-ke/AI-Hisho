@@ -1,10 +1,13 @@
+import 'package:app/constants/characters.dart';
 import 'package:app/widgets/common/common_layout.dart';
 import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/colors.dart';
+import '../providers/preferences_provider.dart';
 
-class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +15,7 @@ class ProfileScreen extends StatelessWidget {
       final lightColor = primaryColor.withOpacity(0.1);
       return CommonLayout(
         appBar: AppBar(
-          title: const Text('プロフィール'),
+          title: const Text('ユーザー設定'),
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: primaryColor),
             onPressed: () => Navigator.of(context).pop(),
@@ -36,54 +39,29 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildProfileCard(
       BuildContext context, Color primaryColor, Color lightColor) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: lightColor,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.person,
-              size: 32,
-              color: primaryColor,
-            ),
-          ),
-          const SizedBox(width: 16),
-          const Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'example@email.com',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: AppColors.gray600,
-                ),
-              ),
-            ],
-          ),
-        ],
+    return Center(
+      child: Container(
+        width: 64,
+        height: 64,
+        decoration: BoxDecoration(
+          color: lightColor,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(
+          Icons.person,
+          size: 48,
+          color: primaryColor,
+        ),
       ),
     );
   }
 
   Widget _buildSettingsCard(
       BuildContext context, Color primaryColor, Color lightColor) {
+    final prefsProvider = Provider.of<PreferencesProvider>(context);
+    final assistantCharacter =
+        CharactersList.getById(prefsProvider.preferences.assistantCharacter);
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -100,35 +78,29 @@ class ProfileScreen extends StatelessWidget {
         children: [
           _buildSettingItem(
             context,
-            icon: Icons.settings,
-            title: 'ミライフの設定',
-            primaryColor: primaryColor,
-            lightColor: lightColor,
-            onTap: () => Navigator.of(context).pushNamed('/tutorial'),
+            leftWidget: Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: primaryColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            title: 'カラー設定',
+            onTap: () => Navigator.of(context).pushNamed('/settings-color'),
           ),
           const Divider(height: 1),
+          // キャラクター設定
           _buildSettingItem(
             context,
-            icon: Icons.shield,
-            title: 'プライバシー設定',
-            primaryColor: primaryColor,
-            lightColor: lightColor,
-          ),
-          const Divider(height: 1),
-          _buildSettingItem(
-            context,
-            icon: Icons.help,
-            title: 'ヘルプとサポート',
-            primaryColor: primaryColor,
-            lightColor: lightColor,
-          ),
-          const Divider(height: 1),
-          _buildSettingItem(
-            context,
-            icon: Icons.logout,
-            title: 'ログアウト',
-            primaryColor: primaryColor,
-            lightColor: lightColor,
+            leftWidget: Image.asset(
+              assistantCharacter.imagePath,
+              width: 32,
+              height: 32,
+              fit: BoxFit.cover,
+            ),
+            title: 'キャラクター設定',
+            onTap: () => Navigator.of(context).pushNamed('/settings-character'),
           ),
         ],
       ),
@@ -137,40 +109,41 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildSettingItem(
     BuildContext context, {
-    required IconData icon,
+    required Widget leftWidget,
     required String title,
-    required Color primaryColor,
-    required Color lightColor,
     VoidCallback? onTap,
   }) {
     return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(
           children: [
             Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: lightColor,
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 16,
-                color: primaryColor,
-              ),
+              child: Center(child: leftWidget),
             ),
             const SizedBox(width: 12),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                color: AppColors.gray900,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.gray900,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const Spacer(),
             const Icon(
               Icons.chevron_right,
               color: AppColors.gray400,
@@ -183,7 +156,7 @@ class ProfileScreen extends StatelessWidget {
 
   Widget _buildAppInfoCard(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -196,6 +169,7 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
       child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -211,6 +185,7 @@ class ProfileScreen extends StatelessWidget {
                 '1.0.0',
                 style: TextStyle(
                   fontSize: 14,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.gray900,
                 ),
               ),
@@ -228,9 +203,10 @@ class ProfileScreen extends StatelessWidget {
                 ),
               ),
               Text(
-                '2025/05/01',
+                '2025/06/29',
                 style: TextStyle(
                   fontSize: 14,
+                  fontWeight: FontWeight.w600,
                   color: AppColors.gray900,
                 ),
               ),

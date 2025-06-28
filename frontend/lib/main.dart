@@ -11,7 +11,7 @@ import 'constants/theme.dart';
 import 'providers/preferences_provider.dart';
 import 'screens/tutorial/tutorial_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/profile_screen.dart';
+import 'screens/settings_screen.dart';
 import 'services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
               '/home': (context) => const HomeScreen(),
               '/checklist': (context) => const ReminderListScreen(),
               '/add_schedule': (context) => const AddScheduleScreen(),
-              '/profile': (context) => const ProfileScreen(),
+              '/settings': (context) => const SettingsScreen(),
               '/tutorial': (context) => const TutorialScreen(),
               '/calendar': (context) => const CalendarScreen(),
             },

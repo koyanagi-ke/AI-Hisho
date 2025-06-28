@@ -20,7 +20,7 @@ class AppFooter extends StatelessWidget {
           Navigator.of(context).pushNamed('/calendar');
           break;
         case 3:
-          Navigator.of(context).pushNamed('/profile');
+          Navigator.of(context).pushNamed('/settings');
       }
     }
 
@@ -56,7 +56,7 @@ class AppFooter extends StatelessWidget {
             _buildNavItem(
               icon: Icons.person,
               label: '設定',
-              isSelected: ModalRoute.of(context)?.settings.name == '/profile',
+              isSelected: ModalRoute.of(context)?.settings.name == '/settings',
               primaryColor: primaryColor,
               onTap: () => onTap(3),
             ),

@@ -45,6 +45,7 @@ dependencies:
   http: ^1.4.0
   flutter_dotenv: ^5.2.1
   firebase_messaging: ^15.2.7
+  flutter_native_splash: ^2.4.4
 
 dev_dependencies:
   flutter_test:
@@ -70,9 +71,19 @@ flutter:
   assets:
     - .env
     - assets/images/characters/
+    - assets/branding.png
+    - assets/splash.png
 
 flutter_launcher_icons:
   android: true
   ios: true
   image_path: "assets/images/characters/normal.png"
   remove_alpha_ios: true
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/splash.png
+  # branding: assets/branding.png
+  android: true
+  ios: true
+  web: false

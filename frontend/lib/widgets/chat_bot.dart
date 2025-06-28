@@ -1,4 +1,3 @@
-import 'package:app/constants/colors.dart';
 import 'package:app/models/chat_message.dart';
 import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
@@ -120,6 +119,12 @@ class _ChatOverlay extends StatelessWidget {
       final chatProvider = Provider.of<ChatProvider>(context);
       final assistantCharacter =
           CharactersList.getById(prefsProvider.preferences.assistantCharacter);
+      final mediaQuery = MediaQuery.of(context);
+      final screenHeight = mediaQuery.size.height;
+      final keyboardHeight = mediaQuery.viewInsets.bottom;
+      final topPadding = mediaQuery.padding.top;
+      final safeAvailableHeight =
+          screenHeight - keyboardHeight - topPadding - 32;
 
       return Positioned.fill(
         child: Stack(
@@ -131,7 +136,7 @@ class _ChatOverlay extends StatelessWidget {
               ),
             ),
             Positioned(
-              bottom: 112,
+              bottom: keyboardHeight > 0 ? keyboardHeight + 16 : 112,
               left: 16,
               right: 16,
               child: ScaleTransition(
@@ -143,7 +148,7 @@ class _ChatOverlay extends StatelessWidget {
                   ),
                   child: Container(
                     width: MediaQuery.of(context).size.width * 0.9,
-                    height: MediaQuery.of(context).size.height * 0.6,
+                    height: safeAvailableHeight.clamp(0.0, screenHeight * 0.6),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -193,7 +198,7 @@ class _ChatOverlay extends StatelessWidget {
                                           width: 80, height: 80),
                                       const SizedBox(height: 16),
                                       Text(
-                                        'こんにちは！何かお手伝いできることはありますか？',
+                                        'こんにちは！\n何かお手伝いできることはありますか？',
                                         style:
                                             TextStyle(color: Colors.grey[600]),
                                         textAlign: TextAlign.center,

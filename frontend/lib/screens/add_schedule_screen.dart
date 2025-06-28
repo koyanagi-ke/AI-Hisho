@@ -12,7 +12,8 @@ import '../widgets/common/common_layout.dart';
 import '../widgets/common/theme_builder.dart';
 
 class AddScheduleScreen extends StatefulWidget {
-  const AddScheduleScreen({super.key});
+  final String? sharedText;
+  const AddScheduleScreen({super.key, this.sharedText});
 
   @override
   State<AddScheduleScreen> createState() => _AddScheduleScreenState();
@@ -48,6 +49,9 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
     final now = TimeOfDay.now();
     _endTime = now.replacing(hour: (now.hour + 1) % 24);
     _notifyTime = now.replacing(hour: (now.hour - 1 + 24) % 24);
+    if (widget.sharedText != null) {
+      _naturalLanguageController.text = widget.sharedText!;
+    }
   }
 
   @override

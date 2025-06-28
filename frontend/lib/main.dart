@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:flutter/services.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:app/firebase_options.dart';
 import 'package:app/providers/chat_provider.dart';
 import 'package:app/screens/add_schedule_screen.dart';
@@ -19,6 +22,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+StreamSubscription<List<SharedMediaFile>>? _mediaSub;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ja_JP', null);
@@ -30,12 +36,80 @@ void main() async {
   await AuthService.signInAnonymously();
   await FCMService().init();
   runApp(const MyApp());
+  startSharingListener();
 }
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+void startSharingListener() {
+  // 起動中の共有受信
+  _mediaSub = ReceiveSharingIntent.instance.getMediaStream().listen(
+    (List<SharedMediaFile> files) {
+      _handleSharedMedia(files);
+    },
+    onError: (err) => print('getMediaStream error: $err'),
+  );
 
-class MyApp extends StatelessWidget {
+  // 起動時の共有受信
+  ReceiveSharingIntent.instance
+      .getInitialMedia()
+      .then((List<SharedMediaFile> files) {
+    _handleSharedMedia(files);
+  });
+}
+
+void _handleSharedMedia(List<SharedMediaFile> files) {
+  for (final file in files) {
+    if (file.message != null && file.message!.isNotEmpty) {
+      final sharedText = file.message!;
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => AddScheduleScreen(sharedText: sharedText),
+        ),
+      );
+      break;
+    }
+  }
+}
+
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  static const platform = MethodChannel('app.channel.shared.data');
+  @override
+  void initState() {
+    super.initState();
+
+    platform.setMethodCallHandler((call) async {
+      if (call.method == 'onShared') {
+        final String sharedText = call.arguments;
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => AddScheduleScreen(sharedText: sharedText),
+          ),
+        );
+      }
+    });
+
+    platform.invokeMethod<String>('getSharedText').then((sharedText) {
+      if (sharedText != null && sharedText.isNotEmpty) {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => AddScheduleScreen(sharedText: sharedText),
+          ),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _mediaSub?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 	<dict>
+		<key>AppGroupIdentifier</key>
+		<string>group.com.hellohack.miralife</string>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
 		<key>CFBundleDevelopmentRegion</key>
@@ -53,5 +55,18 @@
 		<string></string>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<key>UIApplicationExitsOnSuspend</key>
+		<false/>
+		<key>CFBundleURLTypes</key>
+		<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+			<string>ShareMedia-com.hellohack.miralife</string>
+			</array>
+		</dict>
+		</array>
 	</dict>
 </plist>

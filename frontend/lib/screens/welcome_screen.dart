@@ -41,7 +41,7 @@ class WelcomeScreen extends StatelessWidget {
                   text: '始める',
                   onPressed: () =>
                       Navigator.of(context).pushReplacementNamed('/tutorial'),
-                  themeColor: 'default',
+                  themeColor: 'orange',
                 ),
               ),
             ],

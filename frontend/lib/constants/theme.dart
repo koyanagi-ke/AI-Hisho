@@ -4,9 +4,9 @@ import 'colors.dart';
 class AppTheme {
   static ThemeData getTheme(String colorName) {
     final Color primaryColor =
-        AppColors.themeColors[colorName] ?? AppColors.themeColors['default']!;
+        AppColors.themeColors[colorName] ?? AppColors.themeColors['orange']!;
     final Color primaryLightColor = AppColors.themeLightColors[colorName] ??
-        AppColors.themeLightColors['default']!;
+        AppColors.themeLightColors['orange']!;
     return ThemeData(
       primaryColor: primaryColor,
       scaffoldBackgroundColor: primaryLightColor,

@@ -3,8 +3,8 @@ import 'package:app/widgets/common/common_layout.dart';
 import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../constants/colors.dart';
-import '../providers/preferences_provider.dart';
+import '../../constants/colors.dart';
+import '../../providers/preferences_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -87,7 +87,7 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             title: 'カラー設定',
-            onTap: () => Navigator.of(context).pushNamed('/settings-color'),
+            onTap: () => Navigator.of(context).pushNamed('/settings_color'),
           ),
           const Divider(height: 1),
           // キャラクター設定
@@ -100,7 +100,7 @@ class SettingsScreen extends StatelessWidget {
               fit: BoxFit.cover,
             ),
             title: 'キャラクター設定',
-            onTap: () => Navigator.of(context).pushNamed('/settings-character'),
+            onTap: () => Navigator.of(context).pushNamed('/settings_character'),
           ),
         ],
       ),

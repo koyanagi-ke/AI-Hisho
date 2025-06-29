@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/chat_message.dart';
+import '../models/schedule_event.dart';
 import 'package:firebase_vertexai/firebase_vertexai.dart';
 
 class ChatProvider with ChangeNotifier {
@@ -27,11 +28,47 @@ class ChatProvider with ChangeNotifier {
       isUser: true,
       timestamp: DateTime.now(),
     );
-
     _messages.add(message);
     notifyListeners();
-
     _generateAIResponseStream(text);
+  }
+
+  // AIレスポンスを生成しないユーザーメッセージ追加（新規追加）
+  void addUserMessageWithoutResponse(String text) {
+    final message = ChatMessage(
+      id: _uuid.v4(),
+      text: text,
+      isUser: true,
+      timestamp: DateTime.now(),
+    );
+    _messages.add(message);
+    notifyListeners();
+    // _generateAIResponseStreamは呼び出さない
+  }
+
+  // アシスタントメッセージを追加
+  void addAssistantMessage(String text) {
+    final message = ChatMessage(
+      id: _uuid.v4(),
+      text: text,
+      isUser: false,
+      timestamp: DateTime.now(),
+    );
+    _messages.add(message);
+    notifyListeners();
+  }
+
+  // 予定確認メッセージを追加
+  void addScheduleConfirmationMessage(String text, ScheduleEvent event) {
+    final message = ChatMessage(
+      id: _uuid.v4(),
+      text: text,
+      isUser: false,
+      timestamp: DateTime.now(),
+      scheduleEvent: event,
+    );
+    _messages.add(message);
+    notifyListeners();
   }
 
   Future<void> _generateAIResponseStream(String userMessage) async {
@@ -89,6 +126,7 @@ class ChatProvider with ChangeNotifier {
           }
         }
       }
+
       _isTyping = false;
       _currentAIMessageId = null;
 
@@ -114,7 +152,6 @@ class ChatProvider with ChangeNotifier {
       isUser: false,
       timestamp: DateTime.now(),
     );
-
     _messages.add(message);
     notifyListeners();
   }

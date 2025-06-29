@@ -13,8 +13,8 @@ client = genai.Client()
 model = "gemini-2.0-flash"
 JST = timezone(timedelta(hours=9))
 
-MAX_TOKENS = 1_048_576
-RESERVED_TOKENS = 2000  # システム文 + 生成余地を残す
+MAX_TOKENS = 1048576
+RESERVED_TOKENS = 2500  # システム文 + 生成余地を残す
 
 
 def create_text(contents, model=model):
@@ -52,9 +52,11 @@ def extract_event_schedule(chat_history: list[dict]) -> dict:
         now.weekday()
     ]
 
+    trimmed_history, user_or_model = truncate_chat_history(chat_history)
+
     system_instruction = f"""今日は {today_str}（{weekday_jp}）です。
 
-以下はチャットの履歴です。user同士の可能性もあれば、userとmodelでやり取りをしている可能性もあります。
+以下は{user_or_model}のやりとりの履歴です。user同士の可能性もあれば、userとmodelでやり取りをしている可能性もあります。
 この会話の中で、予定されているイベントがある場合は、以下の情報を抽出してください：
 
 - イベントのタイトル（自然な日本語で簡潔に）
@@ -72,7 +74,6 @@ def extract_event_schedule(chat_history: list[dict]) -> dict:
   "location": "イベントの場所"
 }}
 """
-    trimmed_history = truncate_chat_history(system_instruction, chat_history)
 
     prompt = [
         {"role": "user", "parts": [{"text": system_instruction}]},
@@ -89,11 +90,10 @@ def estimate_tokens(text: str) -> int:
     return len(encoding.encode(text))
 
 
-def truncate_chat_history(
-    system_instruction: str, chat_history: list[dict]
-) -> list[dict]:
-    total_tokens = estimate_tokens(system_instruction)
+def truncate_chat_history(chat_history: list[dict]) -> list[dict]:
+    total_tokens = 0
     result = []
+    user_or_model = "user同士"
 
     # 最新の発言から逆順で追加（古いものを切る）
     for message in reversed(chat_history):
@@ -104,5 +104,7 @@ def truncate_chat_history(
             break
         result.insert(0, message)
         total_tokens += message_tokens
+        if message.get("role") == "model":
+            user_or_model = "userとmodel(gemini)と"
 
-    return result
+    return result, user_or_model

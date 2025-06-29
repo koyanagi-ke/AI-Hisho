@@ -308,11 +308,11 @@ checklists 配下の項目
   "message": [
     { "role": "user", "parts": [{ "text": "土曜日の朝にサッカーやろうよ" }] },
     {
-      "role": "friend",
+      "role": "model",
       "parts": [{ "text": "9時に武蔵野スポーツセンター集合で！" }]
     },
     {
-      "role": "user",
+      "role": "model",
       "parts": [{ "text": "14:30には帰りたいから、それまでね！" }]
     }
   ]

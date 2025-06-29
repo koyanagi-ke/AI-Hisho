@@ -23,6 +23,7 @@ def create_text(contents, model=model):
 
 
 def extract_json(text: str) -> dict:
+    logger.info(text)
     match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
     if not match:
         match = re.search(r"(\{.*?\})", text, re.DOTALL)
@@ -37,7 +38,7 @@ def extract_json(text: str) -> dict:
 def extract_event_schedule(chat_history: list[dict]) -> dict:
     """
     チャット履歴から、予定のタイトル・日時・場所を抽出する。
-    :param chat_history: [{ "role": "user|friend", "text": "..." }]
+    :param chat_history: [{ "role": "user|model", "text": "..." }]
     :return: {
       "title": "イベント名",
       "start_time": "ISO8601形式（JST）",
@@ -53,7 +54,7 @@ def extract_event_schedule(chat_history: list[dict]) -> dict:
 
     system_instruction = f"""今日は {today_str}（{weekday_jp}）です。
 
-以下は人間同士のチャット履歴です。この会話の中で、予定されているイベントがある場合は、以下の情報を抽出してください：
+以下はチャット履歴です。この会話の中で、予定されているイベントがある場合は、以下の情報を抽出してください：
 
 - イベントのタイトル（自然な日本語で簡潔に）
 - 開始日時（JSTで、ISO 8601形式で）

@@ -55,8 +55,6 @@
 		<string></string>
 		<key>UIStatusBarHidden</key>
 		<false/>
-		<key>UIApplicationExitsOnSuspend</key>
-		<false/>
 		<key>CFBundleURLTypes</key>
 		<array>
 		<dict>

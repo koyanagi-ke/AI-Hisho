@@ -148,7 +148,6 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 今日の予定セクション
             _buildSchedulesSection(primaryColor),
 
             // 今日準備するべきことセクション（今日の場合のみ）
@@ -173,25 +172,14 @@ class _HomeScreenState extends State<HomeScreen> {
         // セクションヘッダー
         Text(
           isToday
-              ? '今日の予定'
-              : DateFormat('M月d日（E）の予定', 'ja').format(_selectedDate),
+              ? '今日の予定 (${_schedules.length}件)'
+              : '${DateFormat('M月d日（E）の予定', 'ja').format(_selectedDate)} (${_schedules.length}件)',
           style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
             color: AppColors.gray900,
           ),
         ),
-        if (_schedules.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(
-            '${_schedules.length}件',
-            style: TextStyle(
-              fontSize: 14,
-              color: primaryColor,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
         const SizedBox(height: 16),
         if (_isLoadingSchedules) ...[
           Center(
@@ -224,25 +212,14 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '今日準備が必要なこと',
-            style: TextStyle(
+          Text(
+            '今日準備が必要な予定 (${_reminderSchedules.length}件)',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: AppColors.gray900,
             ),
           ),
-          if (_reminderSchedules.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              '${_reminderSchedules.length}件',
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.blue,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
           const SizedBox(height: 16),
           if (_isLoadingReminders) ...[
             Center(

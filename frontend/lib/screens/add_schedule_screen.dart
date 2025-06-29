@@ -9,6 +9,7 @@ import '../services/api/schedule_api.dart';
 import '../models/schedule.dart';
 import '../widgets/input/labeled_text_field.dart';
 import '../widgets/common/theme_builder.dart';
+import 'dart:convert';
 
 class AddScheduleScreen extends StatefulWidget {
   final Schedule? initialEvent;

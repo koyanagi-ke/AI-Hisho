@@ -56,7 +56,7 @@ def extract_event_schedule(chat_history: list[dict]) -> dict:
 
     system_instruction = f"""今日は {today_str}（{weekday_jp}）です。
 
-以下は{user_or_model}のやりとりの履歴です。user同士の可能性もあれば、userとmodelでやり取りをしている可能性もあります。
+以下は{user_or_model}のやりとりの履歴です。
 この会話の中で、予定されているイベントがある場合は、以下の情報を抽出してください：
 
 - イベントのタイトル（自然な日本語で簡潔に）
@@ -105,6 +105,7 @@ def truncate_chat_history(chat_history: list[dict]) -> list[dict]:
         result.insert(0, message)
         total_tokens += message_tokens
         if message.get("role") == "model":
+            logger.info("use model")
             user_or_model = "userとmodel(gemini)と"
 
     return result, user_or_model

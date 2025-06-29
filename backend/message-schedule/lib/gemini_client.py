@@ -54,7 +54,8 @@ def extract_event_schedule(chat_history: list[dict]) -> dict:
 
     system_instruction = f"""今日は {today_str}（{weekday_jp}）です。
 
-以下はチャット履歴です。この会話の中で、予定されているイベントがある場合は、以下の情報を抽出してください：
+以下はチャットの履歴です。user同士の可能性もあれば、userとmodelでやり取りをしている可能性もあります。
+この会話の中で、予定されているイベントがある場合は、以下の情報を抽出してください：
 
 - イベントのタイトル（自然な日本語で簡潔に）
 - 開始日時（JSTで、ISO 8601形式で）

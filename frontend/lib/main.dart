@@ -70,6 +70,18 @@ void _handleSharedMedia(List<SharedMediaFile> files) {
   }
 }
 
+void _openAddScheduleScreen(String sharedText) async {
+  navigatorKey.currentState?.push(
+    MaterialPageRoute(
+      builder: (_) => AddScheduleScreen(sharedText: sharedText),
+    ),
+  );
+
+  // 使用後に native 側の sharedText を削除
+  const platform = MethodChannel('app.channel.shared.data');
+  await platform.invokeMethod('clearSharedText');
+}
+
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -83,24 +95,17 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    platform.setMethodCallHandler((call) async {
-      if (call.method == 'onShared') {
-        final String sharedText = call.arguments;
-        navigatorKey.currentState?.push(
-          MaterialPageRoute(
-            builder: (_) => AddScheduleScreen(sharedText: sharedText),
-          ),
-        );
+    platform.invokeMethod<String>('getSharedText').then((sharedText) {
+      if (sharedText != null && sharedText.isNotEmpty) {
+        _openAddScheduleScreen(sharedText);
       }
     });
 
-    platform.invokeMethod<String>('getSharedText').then((sharedText) {
-      if (sharedText != null && sharedText.isNotEmpty) {
-        navigatorKey.currentState?.push(
-          MaterialPageRoute(
-            builder: (_) => AddScheduleScreen(sharedText: sharedText),
-          ),
-        );
+    // アクティブ中の受信
+    platform.setMethodCallHandler((call) async {
+      if (call.method == 'onShared') {
+        final String sharedText = call.arguments;
+        _openAddScheduleScreen(sharedText);
       }
     });
   }

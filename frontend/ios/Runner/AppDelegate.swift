@@ -14,14 +14,18 @@ import UIKit
     self.sharedTextChannel = channel
 
     channel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
+      let defaults = UserDefaults(suiteName: "group.com.hellohack.miralife")
       if call.method == "getSharedText" {
-        let defaults = UserDefaults(suiteName: "group.com.hellohack.miralife")
         let sharedText = defaults?.string(forKey: "sharedText") ?? ""
         result(sharedText)
 
         // 読み取り後に削除
         defaults?.removeObject(forKey: "sharedText")
         defaults?.synchronize()
+      } else if call.method == "clearSharedText" {
+        defaults?.removeObject(forKey: "sharedText")
+        defaults?.synchronize()
+        result(nil)
       }
     }
 

@@ -15,15 +15,12 @@ import UIKit
 
     channel.setMethodCallHandler { (call: FlutterMethodCall, result: @escaping FlutterResult) in
       let defaults = UserDefaults(suiteName: "group.com.hellohack.miralife")
-      if call.method == "getSharedText" {
-        let sharedText = defaults?.string(forKey: "sharedText") ?? ""
-        result(sharedText)
 
-        // 読み取り後に削除
-        defaults?.removeObject(forKey: "sharedText")
-        defaults?.synchronize()
+      if call.method == "getSharedText" {
+        let jsonString = defaults?.string(forKey: "sharedTextList") ?? "[]"
+        result(jsonString)
       } else if call.method == "clearSharedText" {
-        defaults?.removeObject(forKey: "sharedText")
+        defaults?.removeObject(forKey: "sharedTextList")
         defaults?.synchronize()
         result(nil)
       }

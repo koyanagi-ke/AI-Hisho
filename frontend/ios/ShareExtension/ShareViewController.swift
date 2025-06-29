@@ -3,34 +3,43 @@ import Social
 import MobileCoreServices
 
 class ShareViewController: SLComposeServiceViewController {
-    let sharedKey = "sharedText"
+    let sharedKey = "sharedTextList"
     let suiteName = "group.com.hellohack.miralife"
     let hostURLScheme = "ShareMedia-com.hellohack.miralife"
 
-    override func isContentValid() -> Bool { true }
-
     override func didSelectPost() {
+        var textList: [String] = []
+
         if let item = extensionContext?.inputItems.first as? NSExtensionItem {
+            let group = DispatchGroup()
+
             for provider in item.attachments ?? [] {
                 if provider.hasItemConformingToTypeIdentifier(kUTTypeText as String) {
+                    group.enter()
                     provider.loadItem(forTypeIdentifier: kUTTypeText as String, options: nil) { data, _ in
                         if let text = data as? String {
-                            let ud = UserDefaults(suiteName: self.suiteName)
-                            ud?.set(text, forKey: self.sharedKey)
-                            ud?.synchronize()
-
-                            self.redirectToHostApp()
-                        } else {
-                            self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
+                            textList.append(text)
                         }
+                        group.leave()
                     }
-                    return
+                }
+            }
+
+            group.notify(queue: .main) {
+                if !textList.isEmpty {
+                    let jsonData = try? JSONSerialization.data(withJSONObject: textList)
+                    let jsonString = String(data: jsonData!, encoding: .utf8)
+
+                    let ud = UserDefaults(suiteName: self.suiteName)
+                    ud?.set(jsonString, forKey: self.sharedKey)
+                    ud?.synchronize()
+
+                    self.redirectToHostApp()
+                } else {
+                    self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
                 }
             }
         }
-
-        // fallback
-        self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
     }
 
     private func redirectToHostApp() {
@@ -47,9 +56,6 @@ class ShareViewController: SLComposeServiceViewController {
             responder = responder?.next
         }
 
-        // シェアExtensionを閉じる
         self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
     }
-
-    override func configurationItems() -> [Any]! { [] }
 }

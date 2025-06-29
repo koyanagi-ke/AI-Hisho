@@ -144,7 +144,7 @@ class _ChatOverlayState extends State<_ChatOverlay> {
       action: 'reset_chat',
     ),
     ChatOption(
-      title: '会話から予定を追加',
+      title: 'この内容で予定を追加',
       icon: Icons.event_note,
       action: 'add_schedule',
     ),
@@ -452,24 +452,23 @@ class _ChatOverlayState extends State<_ChatOverlay> {
 
     for (int i = 0; i < schedules.length; i++) {
       final schedule = schedules[i];
-      scheduleText += '${i + 1}. ';
 
       if (schedule.title.isNotEmpty) {
-        scheduleText += '📅 **${schedule.title}**\n';
+        scheduleText += '📅 **${schedule.title}**\n\n';
       }
 
       scheduleText +=
-          '🕐 ${timeFormat.format(schedule.startTime)} - ${timeFormat.format(schedule.endTime)}\n';
+          '🕐 ${timeFormat.format(schedule.startTime)} - ${timeFormat.format(schedule.endTime)}\n\n';
 
       final duration = schedule.endTime.difference(schedule.startTime);
-      scheduleText += '⏱️ ${_formatDuration(duration)}\n';
+      scheduleText += '⏱️ ${_formatDuration(duration)}\n\n';
 
       if (schedule.location.isNotEmpty) {
-        scheduleText += '📍 ${schedule.location}\n';
+        scheduleText += '📍 ${schedule.location}\n\n';
       }
 
       if (i < schedules.length - 1) {
-        scheduleText += '\n';
+        scheduleText += '\n\n';
       }
     }
 
@@ -486,16 +485,15 @@ class _ChatOverlayState extends State<_ChatOverlay> {
     }
 
     // ユーザーメッセージとして表示（AIレスポンスは生成しない）
-    chatProvider.addUserMessageWithoutResponse('会話から予定を追加してください');
+    chatProvider.addUserMessageWithoutResponse('この内容で予定を追加してください');
 
     try {
       // 会話履歴をAPI用の形式に変換
       final messages = chatProvider.messages
-          .where((message) => message.text != '会話から予定を追加してください')
+          .where((message) => message.text != 'この内容で予定を追加してください')
           .map((message) {
         return {
-          // TODO: ここでのroleは、APIの仕様に合わせて調整が必要
-          'role': message.isUser ? 'user' : 'user',
+          'role': 'user',
           'text': message.text,
         };
       }).toList();
@@ -511,7 +509,7 @@ class _ChatOverlayState extends State<_ChatOverlay> {
         _addScheduleConfirmationMessage(chatProvider, scheduleEvent);
       } else {
         chatProvider.addAssistantMessage(
-            '申し訳ございませんが、会話から予定を抽出できませんでした。もう少し具体的な情報を教えていただけますか？');
+            '申し訳ございませんが、内容から予定を抽出できませんでした。もう少し具体的な情報を教えていただけますか？');
       }
     } catch (e) {
       chatProvider.addAssistantMessage('エラーが発生しました。もう一度お試しください。');
@@ -524,22 +522,22 @@ class _ChatOverlayState extends State<_ChatOverlay> {
     final dateFormat = DateFormat('yyyy年MM月dd日(E)', 'ja_JP');
     final timeFormat = DateFormat('HH:mm');
 
-    String confirmationText = '会話から以下の予定を抽出しました：\n\n';
+    String confirmationText = '以下の予定を抽出しました：\n\n';
 
     if (event.title.isNotEmpty) {
-      confirmationText += '📅 **${event.title}**\n';
+      confirmationText += '📅 **${event.title}**\n\n';
     }
 
     confirmationText +=
-        '🕐 ${dateFormat.format(event.startTime)} ${timeFormat.format(event.startTime)} - ${timeFormat.format(event.endTime)}\n';
+        '🕐 ${dateFormat.format(event.startTime)} ${timeFormat.format(event.startTime)} - ${timeFormat.format(event.endTime)}\n\n';
     confirmationText +=
-        '⏱️ 所要時間: ${_formatDuration(event.endTime.difference(event.startTime))}\n';
+        '⏱️ 所要時間: ${_formatDuration(event.endTime.difference(event.startTime))}\n\n';
 
     if (event.location.isNotEmpty) {
-      confirmationText += '📍 ${event.location}\n';
+      confirmationText += '📍 ${event.location}\n\n';
     }
 
-    confirmationText += '\nこの予定をカレンダーに追加しますか？';
+    confirmationText += '\n\nこの予定をカレンダーに追加しますか？';
 
     // 特別なメッセージタイプとして予定データを含めて追加
     chatProvider.addScheduleConfirmationMessage(confirmationText, event);

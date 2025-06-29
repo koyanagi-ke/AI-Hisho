@@ -4,7 +4,6 @@ import 'package:app/widgets/ai_schedule_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
-import '../constants/colors.dart';
 import '../services/api/event_api.dart';
 import '../services/api/schedule_api.dart';
 import '../models/schedule_event.dart';
@@ -427,16 +426,15 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                             child: CupertinoPicker(
                               itemExtent: 40,
                               scrollController: FixedExtentScrollController(
-                                initialItem: selectedMinute ~/ 5,
+                                initialItem: selectedMinute,
                               ),
                               onSelectedItemChanged: (index) {
-                                selectedMinute = index * 5;
+                                selectedMinute = index;
                               },
-                              children: List.generate(12, (index) {
-                                final minute = index * 5;
+                              children: List.generate(60, (index) {
                                 return Center(
                                   child: Text(
-                                    minute.toString().padLeft(2, '0'),
+                                    index.toString().padLeft(2, '0'),
                                     style: const TextStyle(fontSize: 20),
                                   ),
                                 );

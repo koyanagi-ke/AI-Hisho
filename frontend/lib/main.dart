@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:app/constants/colors.dart';
 import 'package:app/services/api/event_api.dart';
 import 'package:flutter/services.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
@@ -76,12 +77,20 @@ Future<void> _openAddScheduleScreenFromSharedTexts(
   navigatorKey.currentState?.push(
     PageRouteBuilder(
       opaque: false,
-      pageBuilder: (_, __, ___) => const Scaffold(
-        backgroundColor: Colors.black45,
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      ),
+      pageBuilder: (context, _, __) {
+        final prefsProvider =
+            Provider.of<PreferencesProvider>(context, listen: false);
+        final themeColor = prefsProvider.preferences.themeColor;
+        final primaryColor = AppColors.themeColors[themeColor];
+        return Scaffold(
+          backgroundColor: Colors.black45,
+          body: Center(
+            child: CircularProgressIndicator(
+              color: primaryColor,
+            ),
+          ),
+        );
+      },
     ),
   );
 

@@ -1,13 +1,13 @@
 import 'package:app/services/api/schedule_api.dart';
 import 'package:app/utils/show_custom_toast.dart';
+import 'package:app/widgets/common/theme_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../constants/colors.dart';
-import '../providers/preferences_provider.dart';
 import '../services/api/reminder_api.dart';
 import '../models/schedule_detail.dart';
 import '../screens/update_schedule_screen.dart';
+import 'dart:convert';
 
 class ChecklistDetailScreen extends StatefulWidget {
   final String eventId;
@@ -118,30 +118,29 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final prefsProvider = Provider.of<PreferencesProvider>(context);
-    final themeColor = prefsProvider.preferences.themeColor;
-    final primaryColor =
-        AppColors.themeColors[themeColor] ?? AppColors.themeColors['orange']!;
-
-    return ScaffoldMessenger(
-      key: _scaffoldMessengerKey,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(widget.eventTitle),
-          centerTitle: true,
-          leading: IconButton(
-            icon: Icon(Icons.arrow_back, color: primaryColor),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.refresh, color: primaryColor),
-              onPressed: _loadScheduleDetail,
+    return ThemeBuilder(
+      builder: (context, primaryColor) {
+        return ScaffoldMessenger(
+          key: _scaffoldMessengerKey,
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(widget.eventTitle),
+              centerTitle: true,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: primaryColor),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.refresh, color: primaryColor),
+                  onPressed: _loadScheduleDetail,
+                ),
+              ],
             ),
-          ],
-        ),
-        body: _buildBody(primaryColor),
-      ),
+            body: _buildBody(primaryColor),
+          ),
+        );
+      },
     );
   }
 
@@ -377,24 +376,22 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
     Color backgroundColor = Colors.orange[50]!;
     Color borderColor = Colors.orange[200]!;
 
-    if (weather?.condition != null) {
-      final condition = weather!.condition!.toLowerCase();
-      if (condition.contains('雨') || condition.contains('rain')) {
-        weatherIcon = Icons.umbrella;
-        weatherColor = Colors.blue[600]!;
-        backgroundColor = Colors.blue[50]!;
-        borderColor = Colors.blue[200]!;
-      } else if (condition.contains('雪') || condition.contains('snow')) {
-        weatherIcon = Icons.ac_unit;
-        weatherColor = Colors.lightBlue[600]!;
-        backgroundColor = Colors.lightBlue[50]!;
-        borderColor = Colors.lightBlue[200]!;
-      } else if (condition.contains('曇') || condition.contains('cloud')) {
-        weatherIcon = Icons.wb_cloudy;
-        weatherColor = Colors.grey[600]!;
-        backgroundColor = Colors.grey[100]!;
-        borderColor = Colors.grey[300]!;
-      }
+    final main = weather?.getMain()?.toLowerCase() ?? '';
+    if (main.contains('rain') || main.contains('雨')) {
+      weatherIcon = Icons.umbrella;
+      weatherColor = Colors.blue[600]!;
+      backgroundColor = Colors.blue[50]!;
+      borderColor = Colors.blue[200]!;
+    } else if (main.contains('snow') || main.contains('雪')) {
+      weatherIcon = Icons.ac_unit;
+      weatherColor = Colors.lightBlue[600]!;
+      backgroundColor = Colors.lightBlue[50]!;
+      borderColor = Colors.lightBlue[200]!;
+    } else if (main.contains('cloud') || main.contains('曇')) {
+      weatherIcon = Icons.wb_cloudy;
+      weatherColor = Colors.grey[600]!;
+      backgroundColor = Colors.grey[100]!;
+      borderColor = Colors.grey[300]!;
     }
 
     return Container(
@@ -430,11 +427,11 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
+                const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         '天気情報',
                         style: TextStyle(
                           fontSize: 14,
@@ -442,37 +439,9 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
                           color: AppColors.gray700,
                         ),
                       ),
-                      if (weather?.condition != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          weather!.condition!,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.gray900,
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
-                if (weather?.temperature != null)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      '${weather!.temperature!.round()}°C',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: weatherColor,
-                      ),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -498,12 +467,12 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'ミライフからのアドバイス',
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: weatherColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.gray900,
                           ),
                         ),
                         const SizedBox(height: 4),

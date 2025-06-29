@@ -20,11 +20,20 @@ class Schedule {
   });
 
   factory Schedule.fromJson(Map<String, dynamic> json) {
+    final now = DateTime.now();
+    final start = json['start_time'] != null
+        ? DateTime.tryParse(json['start_time'])?.toLocal() ?? now
+        : now;
+
+    final end = json['end_time'] != null
+        ? DateTime.tryParse(json['end_time'])?.toLocal() ??
+            start.add(const Duration(hours: 1))
+        : start.add(const Duration(hours: 1));
     return Schedule(
       eventId: json['event_id'] ?? '',
       title: json['title'] ?? '',
-      startTime: DateTime.parse(json['start_time']).toLocal(),
-      endTime: DateTime.parse(json['end_time']).toLocal(),
+      startTime: start,
+      endTime: end,
       location: json['location'] ?? '',
       address: json['address'],
       notifyAt: json['notify_at'] != null

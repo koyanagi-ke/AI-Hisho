@@ -41,22 +41,25 @@ class ChecklistItem {
 }
 
 class WeatherInfo {
-  final String? condition;
-  final double? temperature;
-  final String? description;
+  final List<dynamic>? list;
 
-  WeatherInfo({
-    this.condition,
-    this.temperature,
-    this.description,
-  });
+  WeatherInfo({this.list});
 
   factory WeatherInfo.fromJson(Map<String, dynamic> json) {
     return WeatherInfo(
-      condition: json['condition'],
-      temperature: json['temperature']?.toDouble(),
-      description: json['description'],
+      list: json['list'] as List<dynamic>?,
     );
+  }
+
+  String? getMain() {
+    if (list != null && list!.isNotEmpty) {
+      final first = list![0] as Map<String, dynamic>;
+      final weatherList = first['weather'] as List<dynamic>?;
+      if (weatherList != null && weatherList.isNotEmpty) {
+        return weatherList[0]['main'] as String?;
+      }
+    }
+    return null;
   }
 }
 

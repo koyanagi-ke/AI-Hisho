@@ -15,13 +15,11 @@ class SettingsCharacterScreen extends StatelessWidget {
       builder: (context, primaryColor) {
         final prefsProvider = Provider.of<PreferencesProvider>(context);
         final currentCharacter = prefsProvider.preferences.assistantCharacter;
-        final themeColor = prefsProvider.preferences.themeColor;
-        final color = AppColors.themeColors[themeColor] ?? primaryColor;
         return Scaffold(
           appBar: AppBar(
             title: const Text('キャラクター設定'),
             leading: IconButton(
-              icon: Icon(Icons.arrow_back, color: color),
+              icon: Icon(Icons.arrow_back, color: primaryColor),
               onPressed: () => Navigator.of(context).pop(),
             ),
             backgroundColor: Colors.white,
@@ -59,7 +57,8 @@ class SettingsCharacterScreen extends StatelessWidget {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: isSelected ? color : AppColors.gray200,
+                              color:
+                                  isSelected ? primaryColor : AppColors.gray200,
                               width: isSelected ? 2 : 1,
                             ),
                             boxShadow: [

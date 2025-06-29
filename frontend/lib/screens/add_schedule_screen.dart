@@ -1,9 +1,9 @@
 import 'package:app/utils/date_format_utils.dart';
 import 'package:app/utils/show_custom_toast.dart';
+import 'package:app/widgets/ai_schedule_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
-import '../constants/colors.dart';
 import '../services/api/event_api.dart';
 import '../services/api/schedule_api.dart';
 import '../models/schedule_event.dart';
@@ -71,8 +71,9 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
     });
 
     try {
-      final result =
-          await EventApi.extractEvent(_naturalLanguageController.text);
+      final result = await EventApi.extractEvent([
+        {"role": "user", "text": _naturalLanguageController.text}
+      ]);
       if (result != null) {
         final event = ScheduleEvent.fromJson(result);
         setState(() {
@@ -425,16 +426,15 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
                             child: CupertinoPicker(
                               itemExtent: 40,
                               scrollController: FixedExtentScrollController(
-                                initialItem: selectedMinute ~/ 5,
+                                initialItem: selectedMinute,
                               ),
                               onSelectedItemChanged: (index) {
-                                selectedMinute = index * 5;
+                                selectedMinute = index;
                               },
-                              children: List.generate(12, (index) {
-                                final minute = index * 5;
+                              children: List.generate(60, (index) {
                                 return Center(
                                   child: Text(
-                                    minute.toString().padLeft(2, '0'),
+                                    index.toString().padLeft(2, '0'),
                                     style: const TextStyle(fontSize: 20),
                                   ),
                                 );
@@ -574,104 +574,12 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (!_showManualForm) ...[
-                Card(
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.auto_awesome, color: primaryColor),
-                            const SizedBox(width: 8),
-                            const Text(
-                              'AI予定作成',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          '自然な言葉で予定を入力してください',
-                          style: TextStyle(
-                            color: AppColors.gray600,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextField(
-                          controller: _naturalLanguageController,
-                          decoration: InputDecoration(
-                            hintText: '例: 明日の午後3時から5時まで東京オフィスでミーティング',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: primaryColor),
-                            ),
-                          ),
-                          maxLines: 3,
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed:
-                                _isLoading ? null : _analyzeNaturalLanguage,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryColor,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
-                                    ),
-                                  )
-                                : const Text('AI解析'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Center(
-                  child: Column(
-                    children: [
-                      const Text(
-                        'または',
-                        style: TextStyle(
-                          color: AppColors.gray500,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextButton(
-                        onPressed: _showManualInput,
-                        child: Text(
-                          '手動で入力する',
-                          style: TextStyle(
-                            color: primaryColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                AiScheduleInput(
+                  controller: _naturalLanguageController,
+                  isLoading: _isLoading,
+                  onAnalyze: _analyzeNaturalLanguage,
+                  onManualInput: _showManualInput,
+                  primaryColor: primaryColor,
                 ),
               ],
               if (_showManualForm) ...[

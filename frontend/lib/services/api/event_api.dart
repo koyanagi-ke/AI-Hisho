@@ -1,16 +1,17 @@
 import 'package:app/services/api/api_service.dart';
 
 class EventApi {
-  static Future<Map<String, dynamic>?> extractEvent(String message) {
+  static Future<Map<String, dynamic>?> extractEvent(
+      List<Map<String, String>> messages) {
     final body = {
-      "message": [
-        {
-          "role": "user",
+      "message": messages.map((msg) {
+        return {
+          "role": msg['role'],
           "parts": [
-            {"text": message}
+            {"text": msg['text']}
           ]
-        }
-      ]
+        };
+      }).toList()
     };
 
     return ApiService.request(

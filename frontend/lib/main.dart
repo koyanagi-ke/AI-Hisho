@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:app/services/api/event_api.dart';
 import 'package:flutter/services.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:app/firebase_options.dart';
@@ -21,6 +23,7 @@ import 'services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'models/schedule_event.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 StreamSubscription<List<SharedMediaFile>>? _mediaSub;
@@ -32,7 +35,6 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  // 匿名ログインを実行
   await AuthService.signInAnonymously();
   await FCMService().init();
   runApp(const MyApp());
@@ -40,7 +42,6 @@ void main() async {
 }
 
 void startSharingListener() {
-  // 起動中の共有受信
   _mediaSub = ReceiveSharingIntent.instance.getMediaStream().listen(
     (List<SharedMediaFile> files) {
       _handleSharedMedia(files);
@@ -48,7 +49,6 @@ void startSharingListener() {
     onError: (err) => print('getMediaStream error: $err'),
   );
 
-  // 起動時の共有受信
   ReceiveSharingIntent.instance
       .getInitialMedia()
       .then((List<SharedMediaFile> files) {
@@ -56,28 +56,57 @@ void startSharingListener() {
   });
 }
 
-void _handleSharedMedia(List<SharedMediaFile> files) {
-  for (final file in files) {
-    if (file.message != null && file.message!.isNotEmpty) {
-      final sharedText = file.message!;
-      navigatorKey.currentState?.push(
-        MaterialPageRoute(
-          builder: (_) => AddScheduleScreen(sharedText: sharedText),
-        ),
-      );
-      break;
-    }
+void _handleSharedMedia(List<SharedMediaFile> files) async {
+  final texts = files
+      .map((file) => file.message)
+      .whereType<String>()
+      .map((msg) => msg.trim())
+      .where((msg) => msg.isNotEmpty)
+      .toList();
+
+  if (texts.isNotEmpty) {
+    await _openAddScheduleScreenFromSharedTexts(texts);
   }
 }
 
-void _openAddScheduleScreen(String sharedText) async {
+Future<void> _openAddScheduleScreenFromSharedTexts(
+    List<String> sharedTexts) async {
+  if (sharedTexts.isEmpty) return;
+
   navigatorKey.currentState?.push(
-    MaterialPageRoute(
-      builder: (_) => AddScheduleScreen(sharedText: sharedText),
+    PageRouteBuilder(
+      opaque: false,
+      pageBuilder: (_, __, ___) => const Scaffold(
+        backgroundColor: Colors.black45,
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
     ),
   );
 
-  // 使用後に native 側の sharedText を削除
+  try {
+    final response = await EventApi.extractEvent(
+      sharedTexts.map((t) => {"role": "user", "text": t}).toList(),
+    );
+
+    navigatorKey.currentState?.pop();
+
+    if (response != null) {
+      final event = ScheduleEvent.fromJson(response);
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (_) => AddScheduleScreen(
+            initialEvent: event,
+            showManualForm: true,
+          ),
+        ),
+      );
+    }
+  } catch (e) {
+    navigatorKey.currentState?.pop();
+  }
+
   const platform = MethodChannel('app.channel.shared.data');
   await platform.invokeMethod('clearSharedText');
 }
@@ -91,21 +120,35 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   static const platform = MethodChannel('app.channel.shared.data');
+
   @override
   void initState() {
     super.initState();
 
-    platform.invokeMethod<String>('getSharedText').then((sharedText) {
-      if (sharedText != null && sharedText.isNotEmpty) {
-        _openAddScheduleScreen(sharedText);
+    platform.invokeMethod<String>('getSharedText').then((jsonString) async {
+      if (jsonString != null && jsonString.isNotEmpty) {
+        try {
+          final List<dynamic> parsed = json.decode(jsonString);
+          final List<String> sharedTexts = parsed
+              .whereType<String>()
+              .map((s) => s.trim())
+              .where((s) => s.isNotEmpty)
+              .toList();
+          if (sharedTexts.isNotEmpty) {
+            await _openAddScheduleScreenFromSharedTexts(sharedTexts);
+          }
+        } catch (e) {
+          print('Failed to parse sharedText: $e');
+        }
       }
     });
 
-    // アクティブ中の受信
     platform.setMethodCallHandler((call) async {
       if (call.method == 'onShared') {
         final String sharedText = call.arguments;
-        _openAddScheduleScreen(sharedText);
+        if (sharedText.trim().isNotEmpty) {
+          await _openAddScheduleScreenFromSharedTexts([sharedText.trim()]);
+        }
       }
     });
   }
@@ -125,6 +168,21 @@ class _MyAppState extends State<MyApp> {
       ],
       child: Consumer<PreferencesProvider>(
         builder: (context, prefsProvider, child) {
+          if (prefsProvider.isLoading) {
+            return MaterialApp(
+              home: Scaffold(
+                backgroundColor: Colors.white,
+                body: Center(
+                  child: Image.asset(
+                    'assets/splash.png',
+                    width: 200,
+                    height: 200,
+                  ),
+                ),
+              ),
+            );
+          }
+
           final themeColor = prefsProvider.preferences.themeColor;
           final tutorialCompleted = prefsProvider.preferences.tutorialCompleted;
 

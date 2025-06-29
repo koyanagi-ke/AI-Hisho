@@ -12,8 +12,13 @@ import '../widgets/common/common_layout.dart';
 import '../widgets/common/theme_builder.dart';
 
 class AddScheduleScreen extends StatefulWidget {
-  final String? sharedText;
-  const AddScheduleScreen({super.key, this.sharedText});
+  final ScheduleEvent? initialEvent;
+  final bool showManualForm;
+  const AddScheduleScreen({
+    super.key,
+    this.initialEvent,
+    this.showManualForm = false,
+  });
 
   @override
   State<AddScheduleScreen> createState() => _AddScheduleScreenState();
@@ -49,8 +54,24 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
     final now = TimeOfDay.now();
     _endTime = now.replacing(hour: (now.hour + 1) % 24);
     _notifyTime = now.replacing(hour: (now.hour - 1 + 24) % 24);
-    if (widget.sharedText != null) {
-      _naturalLanguageController.text = widget.sharedText!;
+    _showManualForm = widget.showManualForm;
+    if (widget.initialEvent != null) {
+      final event = widget.initialEvent!;
+      _titleController.text = event.title;
+      _locationController.text = event.location;
+      _startDate = event.startTime;
+      _startTime = TimeOfDay.fromDateTime(event.startTime);
+      _endDate = event.endTime;
+      _endTime = TimeOfDay.fromDateTime(event.endTime);
+      _isAllDay = _startTime.hour == 0 &&
+          _startTime.minute == 0 &&
+          _endTime.hour == 23 &&
+          _endTime.minute == 59;
+      final notifyDateTime = event.startTime.subtract(const Duration(hours: 1));
+      _notifyDate = notifyDateTime;
+      _notifyTime = TimeOfDay.fromDateTime(notifyDateTime);
+      _showManualForm = widget.showManualForm;
+      _isAnalyzed = true;
     }
   }
 

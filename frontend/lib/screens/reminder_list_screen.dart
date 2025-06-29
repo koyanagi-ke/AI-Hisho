@@ -145,6 +145,7 @@ class _ReminderListScreenState extends State<ReminderListScreen> {
             ..._schedules.map((schedule) => ScheduleCard(
                   schedule: schedule,
                   primaryColor: primaryColor,
+                  onDeleted: _loadReminderSchedules,
                 )),
             const SizedBox(height: 100),
           ],

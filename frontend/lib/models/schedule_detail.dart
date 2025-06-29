@@ -70,6 +70,8 @@ class ScheduleDetail {
   final List<ChecklistItem> checklists;
   final WeatherInfo? weatherInfo;
   final String? weatherAdvice;
+  final DateTime? notifyAt;
+  final String? address;
 
   ScheduleDetail({
     required this.id,
@@ -81,6 +83,8 @@ class ScheduleDetail {
     required this.checklists,
     this.weatherInfo,
     this.weatherAdvice,
+    this.notifyAt,
+    this.address,
   });
 
   factory ScheduleDetail.fromJson(Map<String, dynamic> json) {
@@ -108,6 +112,10 @@ class ScheduleDetail {
       checklists: checklists,
       weatherInfo: weatherInfo,
       weatherAdvice: json['weather_advice'],
+      notifyAt: json['notify_at'] != null
+          ? DateTime.parse(json['notify_at']).toLocal()
+          : null,
+      address: json['address'],
     );
   }
 }

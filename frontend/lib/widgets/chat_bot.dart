@@ -1,6 +1,5 @@
 import 'package:app/models/chat_message.dart';
 import 'package:app/models/chat_option.dart';
-import 'package:app/models/schedule_event.dart';
 import 'package:app/models/schedule.dart';
 import 'package:app/widgets/common/theme_builder.dart';
 import 'package:app/services/api/event_api.dart';
@@ -503,7 +502,7 @@ class _ChatOverlayState extends State<_ChatOverlay> {
 
       if (result != null) {
         // ScheduleEventにパース
-        final scheduleEvent = ScheduleEvent.fromJson(result);
+        final scheduleEvent = Schedule.fromJson(result);
 
         // 予定確認メッセージをボットのレスポンスとして追加
         _addScheduleConfirmationMessage(chatProvider, scheduleEvent);
@@ -518,7 +517,7 @@ class _ChatOverlayState extends State<_ChatOverlay> {
 
   // 予定確認メッセージを追加
   void _addScheduleConfirmationMessage(
-      ChatProvider chatProvider, ScheduleEvent event) {
+      ChatProvider chatProvider, Schedule event) {
     final dateFormat = DateFormat('yyyy年MM月dd日(E)', 'ja_JP');
     final timeFormat = DateFormat('HH:mm');
 
@@ -558,8 +557,7 @@ class _ChatOverlayState extends State<_ChatOverlay> {
   }
 
   // 予定をカレンダーに追加
-  Future<void> _addEventToCalendar(
-      ScheduleEvent event, Color primaryColor) async {
+  Future<void> _addEventToCalendar(Schedule event, Color primaryColor) async {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
 
     // ユーザーメッセージとして表示（AIレスポンスは生成しない）

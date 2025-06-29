@@ -79,6 +79,7 @@ def extract_event_schedule(chat_history: list[dict]) -> dict:
         {"role": "user", "parts": [{"text": system_instruction}]},
         *trimmed_history,
     ]
+    logger.info(prompt)
 
     response = create_text(prompt)
     return extract_json(response.text)

@@ -136,30 +136,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _scrollToReminderSection() {
-    final key = _reminderSectionKeys[_currentPageIndex];
-    final context = key?.currentContext;
-    if (context != null) {
-      Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
-  void _removeSchedule(String eventId) {
-    setState(() {
-      _schedules.removeWhere((schedule) => schedule.eventId == eventId);
-    });
-  }
-
-  void _removeReminderSchedule(String eventId) {
-    setState(() {
-      _reminderSchedules.removeWhere((schedule) => schedule.eventId == eventId);
-    });
-  }
-
   Widget _buildPageContent(Color primaryColor, GlobalKey reminderKey) {
     final isToday = DateUtils.isSameDay(_selectedDate, DateTime.now());
 
@@ -235,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ..._schedules.map((schedule) => ScheduleCard(
                 schedule: schedule,
                 primaryColor: primaryColor,
-                onDeleted: () => _removeSchedule(schedule.eventId),
+                onDeleted: _loadSchedules,
               )),
         ],
       ],
@@ -287,7 +263,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ..._reminderSchedules.map((schedule) => ScheduleCard(
                   schedule: schedule,
                   primaryColor: Colors.blue,
-                  onDeleted: () => _removeReminderSchedule(schedule.eventId),
+                  onDeleted: _loadReminderSchedules,
                 )),
           ],
         ],

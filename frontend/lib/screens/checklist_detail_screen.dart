@@ -1,3 +1,4 @@
+import 'package:app/services/api/schedule_api.dart';
 import 'package:app/utils/show_custom_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -6,6 +7,7 @@ import '../constants/colors.dart';
 import '../providers/preferences_provider.dart';
 import '../services/api/reminder_api.dart';
 import '../models/schedule_detail.dart';
+import '../screens/update_schedule_screen.dart';
 
 class ChecklistDetailScreen extends StatefulWidget {
   final String eventId;
@@ -41,7 +43,7 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
     });
 
     try {
-      final detail = await ReminderApi.getScheduleDetail(widget.eventId);
+      final detail = await ScheduleApi.getScheduleDetail(widget.eventId);
       if (detail != null) {
         setState(() {
           _scheduleDetail = detail;
@@ -217,9 +219,11 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
         schedule.checklists.where((item) => item.checked).length;
     final totalCount = schedule.checklists.length;
     final progress = totalCount > 0 ? completedCount / totalCount : 0.0;
+
     final startDate = DateFormat('M月d日（E）').format(schedule.startTime);
     final startTime = DateFormat('HH:mm').format(schedule.startTime);
     final endTime = DateFormat('HH:mm').format(schedule.endTime);
+
     final isSameDay = DateUtils.isSameDay(schedule.startTime, schedule.endTime);
     final timeDisplay = isSameDay
         ? '$startDate $startTime 〜 $endTime'
@@ -242,17 +246,33 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Icon(Icons.event, color: primaryColor, size: 24),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  schedule.title,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.gray900,
+              Row(
+                children: [
+                  Icon(Icons.event, color: primaryColor, size: 24),
+                  const SizedBox(width: 8),
+                  Text(
+                    schedule.title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.gray900,
+                    ),
                   ),
+                ],
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.edit,
+                  color: primaryColor,
+                  size: 20,
+                ),
+                onPressed: () => _onEditSchedule(schedule),
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
                 ),
               ),
             ],
@@ -325,6 +345,27 @@ class _ChecklistDetailScreenState extends State<ChecklistDetailScreen> {
         ],
       ),
     );
+  }
+
+  void _onEditSchedule(ScheduleDetail schedule) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => UpdateScheduleScreen(
+          eventId: schedule.id,
+          title: schedule.title,
+          startTime: schedule.startTime,
+          endTime: schedule.endTime,
+          location: schedule.location,
+          address: schedule.address,
+          notifyAt: schedule.notifyAt,
+        ),
+      ),
+    );
+
+    // 更新が完了した場合は再度フェッチ
+    if (result == true) {
+      _loadScheduleDetail();
+    }
   }
 
   Widget _buildWeatherCard(Color primaryColor) {

@@ -1,11 +1,11 @@
-import 'package:app/models/schedule_event.dart';
+import 'package:app/models/schedule.dart';
 
 class ChatMessage {
   final String id;
   final String text;
   final bool isUser;
   final DateTime timestamp;
-  final ScheduleEvent? scheduleEvent; // 予定データを保持
+  final Schedule? scheduleEvent;
 
   ChatMessage({
     required this.id,
@@ -21,7 +21,7 @@ class ChatMessage {
     String? text,
     bool? isUser,
     DateTime? timestamp,
-    ScheduleEvent? scheduleEvent,
+    Schedule? scheduleEvent,
   }) {
     return ChatMessage(
       id: id ?? this.id,

@@ -23,7 +23,7 @@ import 'services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'models/schedule_event.dart';
+import 'models/schedule.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 StreamSubscription<List<SharedMediaFile>>? _mediaSub;
@@ -93,7 +93,7 @@ Future<void> _openAddScheduleScreenFromSharedTexts(
     navigatorKey.currentState?.pop();
 
     if (response != null) {
-      final event = ScheduleEvent.fromJson(response);
+      final event = Schedule.fromJson(response);
       navigatorKey.currentState?.push(
         MaterialPageRoute(
           builder: (_) => AddScheduleScreen(

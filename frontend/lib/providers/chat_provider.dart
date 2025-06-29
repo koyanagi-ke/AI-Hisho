@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import '../models/chat_message.dart';
-import '../models/schedule_event.dart';
+import '../models/schedule.dart';
 import 'package:firebase_vertexai/firebase_vertexai.dart';
 
 class ChatProvider with ChangeNotifier {
@@ -59,7 +59,7 @@ class ChatProvider with ChangeNotifier {
   }
 
   // 予定確認メッセージを追加
-  void addScheduleConfirmationMessage(String text, ScheduleEvent event) {
+  void addScheduleConfirmationMessage(String text, Schedule event) {
     final message = ChatMessage(
       id: _uuid.v4(),
       text: text,

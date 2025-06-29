@@ -16,7 +16,14 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  DateTime _currentMonth = DateTime.now();
+  static const int _initialPage = 120;
+  late final PageController _pageController =
+      PageController(initialPage: _initialPage);
+  int _currentPageIndex = _initialPage;
+
+  DateTime get _currentMonth => DateTime(DateTime.now().year,
+      DateTime.now().month + (_currentPageIndex - _initialPage));
+
   DateTime _selectedDate = DateTime.now();
   List<Schedule> _selectedDateSchedules = [];
   Map<String, List<Schedule>> _monthSchedules = {};
@@ -25,6 +32,17 @@ class _CalendarScreenState extends State<CalendarScreen> {
   @override
   void initState() {
     super.initState();
+    final today = DateTime.now();
+    final firstDayOfMonth =
+        DateTime(_currentMonth.year, _currentMonth.month, 1);
+
+    if (today.year == _currentMonth.year &&
+        today.month == _currentMonth.month) {
+      _selectedDate = today;
+    } else {
+      _selectedDate = firstDayOfMonth;
+    }
+
     _loadMonthSchedules();
     _loadSelectedDateSchedules();
   }
@@ -85,12 +103,28 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
   }
 
-  void _changeMonth(int monthOffset) {
-    setState(() {
-      _currentMonth =
-          DateTime(_currentMonth.year, _currentMonth.month + monthOffset);
-    });
+  void _loadData() {
     _loadMonthSchedules();
+    _loadSelectedDateSchedules();
+  }
+
+  void _onPageChanged(int index) {
+    setState(() {
+      _currentPageIndex = index;
+      final newMonth = DateTime(
+          DateTime.now().year, DateTime.now().month + (index - _initialPage));
+      final today = DateTime.now();
+
+      // その月に本日が含まれていれば本日、そうでなければ1日
+      if (today.year == newMonth.year && today.month == newMonth.month) {
+        _selectedDate = today;
+      } else {
+        _selectedDate = DateTime(newMonth.year, newMonth.month, 1);
+      }
+
+      _loadMonthSchedules();
+      _loadSelectedDateSchedules();
+    });
   }
 
   void _selectDate(DateTime date) {
@@ -102,7 +136,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   List<DateTime> _getDaysInMonth() {
     final firstDay = DateTime(_currentMonth.year, _currentMonth.month, 1);
-    final lastDay = DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
 
     // カレンダーの開始日（月曜日から開始）
     final startDate =
@@ -140,53 +173,74 @@ class _CalendarScreenState extends State<CalendarScreen> {
           centerTitle: true,
           leading: IconButton(
             icon: Icon(Icons.chevron_left, color: primaryColor),
-            onPressed: () => _changeMonth(-1),
+            onPressed: () {
+              _pageController.previousPage(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            },
           ),
           actions: [
             IconButton(
               icon: Icon(Icons.chevron_right, color: primaryColor),
-              onPressed: () => _changeMonth(1),
+              onPressed: () {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
             ),
           ],
         ),
         disableScroll: true,
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            Container(
-              height: 330,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: _buildCalendarGrid(primaryColor),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                child: _selectedDateSchedules.isEmpty
-                    ? _buildSelectedDateSchedules(primaryColor)
-                    : ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(0, 8, 0, 120),
-                        itemCount: _selectedDateSchedules.length,
-                        itemBuilder: (context, index) {
-                          final schedule = _selectedDateSchedules[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: ScheduleCard(
-                              schedule: schedule,
-                              primaryColor: primaryColor,
-                            ),
-                          );
-                        },
-                      ),
-              ),
-            ),
-          ],
+        child: PageView.builder(
+          controller: _pageController,
+          onPageChanged: _onPageChanged,
+          itemBuilder: (context, index) {
+            final month = DateTime(DateTime.now().year,
+                DateTime.now().month + (index - _initialPage));
+            // monthを使ってカレンダーUIを構築
+            return Column(
+              children: [
+                const SizedBox(height: 16),
+                Container(
+                  height: 330,
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildCalendarGridForMonth(month, primaryColor),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    child: _selectedDateSchedules.isEmpty
+                        ? _buildSelectedDateSchedules(primaryColor)
+                        : ListView.builder(
+                            padding: const EdgeInsets.fromLTRB(0, 8, 0, 120),
+                            itemCount: _selectedDateSchedules.length,
+                            itemBuilder: (context, index) {
+                              final schedule = _selectedDateSchedules[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: ScheduleCard(
+                                  schedule: schedule,
+                                  primaryColor: primaryColor,
+                                  onDeleted: _loadData,
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+                ),
+              ],
+            );
+          },
+          itemCount: 240, // 例: 20年分
         ),
       );
     });
   }
 
-  Widget _buildCalendarGrid(Color primaryColor) {
+  Widget _buildCalendarGridForMonth(DateTime month, Color primaryColor) {
     final days = _getDaysInMonth();
     final weekdays = ['月', '火', '水', '木', '金', '土', '日'];
 
@@ -363,6 +417,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           child: ScheduleCard(
             schedule: schedule,
             primaryColor: primaryColor,
+            onDeleted: _loadData,
           ),
         );
       },

@@ -1,4 +1,5 @@
 import 'package:app/models/schedule.dart';
+import 'package:app/models/schedule_detail.dart';
 import 'package:app/services/api/api_service.dart';
 
 class ScheduleApi {
@@ -69,6 +70,23 @@ class ScheduleApi {
     );
   }
 
+// 特定のスケジュール詳細を取得
+  static Future<ScheduleDetail?> getScheduleDetail(String eventId) async {
+    final result = await ApiService.request(
+      path: '/api/crud-schedule?event_id=$eventId',
+      method: 'GET',
+    );
+
+    if (result != null && result is Map<String, dynamic>) {
+      try {
+        return ScheduleDetail.fromJson(result);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  }
+
   // 予定を削除
   static Future<bool> deleteSchedule(String eventId) async {
     final body = {
@@ -78,6 +96,36 @@ class ScheduleApi {
     final result = await ApiService.request(
       path: '/api/crud-schedule',
       method: 'DELETE',
+      body: body,
+    );
+
+    return result != null;
+  }
+
+  // 予定を更新
+  static Future<bool> updateSchedule({
+    required String eventId,
+    String? title,
+    String? startTime,
+    String? endTime,
+    String? location,
+    String? address,
+    String? notifyAt,
+  }) async {
+    final body = <String, dynamic>{
+      "event_id": eventId,
+    };
+
+    if (title != null) body["title"] = title;
+    if (startTime != null) body["start_time"] = startTime;
+    if (endTime != null) body["end_time"] = endTime;
+    if (location != null) body["location"] = location;
+    if (address != null) body["address"] = address;
+    if (notifyAt != null) body["notify_at"] = notifyAt;
+
+    final result = await ApiService.request(
+      path: '/api/crud-schedule',
+      method: 'PUT',
       body: body,
     );
 

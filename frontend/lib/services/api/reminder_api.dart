@@ -25,23 +25,6 @@ class ReminderApi {
     return null;
   }
 
-  static Future<ScheduleDetail?> getScheduleDetail(String eventId) async {
-    final result = await ApiService.request(
-      path: '/api/crud-schedule?event_id=$eventId',
-      method: 'GET',
-    );
-
-    if (result != null && result is Map<String, dynamic>) {
-      try {
-        return ScheduleDetail.fromJson(result);
-      } catch (e) {
-        print('Error parsing schedule detail: $e');
-        return null;
-      }
-    }
-    return null;
-  }
-
   static Future<Map<String, dynamic>?> toggleChecklistItem({
     required String eventId,
     required String checklistId,

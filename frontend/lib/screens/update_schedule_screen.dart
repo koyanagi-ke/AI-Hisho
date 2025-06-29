@@ -1,44 +1,48 @@
 import 'package:app/utils/date_format_utils.dart';
 import 'package:app/utils/show_custom_toast.dart';
-import 'package:app/widgets/ai_schedule_input.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
-import '../services/api/event_api.dart';
 import '../services/api/schedule_api.dart';
-import '../models/schedule.dart';
 import '../widgets/input/labeled_text_field.dart';
 import '../widgets/common/theme_builder.dart';
 
-class AddScheduleScreen extends StatefulWidget {
-  final Schedule? initialEvent;
-  final bool showManualForm;
-  const AddScheduleScreen({
+class UpdateScheduleScreen extends StatefulWidget {
+  final String eventId;
+  final String title;
+  final DateTime startTime;
+  final DateTime endTime;
+  final String location;
+  final String? address;
+  final DateTime? notifyAt;
+
+  const UpdateScheduleScreen({
     super.key,
-    this.initialEvent,
-    this.showManualForm = false,
+    required this.eventId,
+    required this.title,
+    required this.startTime,
+    required this.endTime,
+    required this.location,
+    this.address,
+    this.notifyAt,
   });
 
   @override
-  State<AddScheduleScreen> createState() => _AddScheduleScreenState();
+  State<UpdateScheduleScreen> createState() => _UpdateScheduleScreenState();
 }
 
-class _AddScheduleScreenState extends State<AddScheduleScreen> {
-  final TextEditingController _naturalLanguageController =
-      TextEditingController();
+class _UpdateScheduleScreenState extends State<UpdateScheduleScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
   bool _isLoading = false;
-  bool _showManualForm = false;
-  bool _isAnalyzed = false;
   bool _notificationEnabled = false;
   bool _isAllDay = false;
 
-  DateTime _startDate = DateTime.now();
+  late DateTime _startDate;
   late TimeOfDay _startTime;
-  DateTime _endDate = DateTime.now();
+  late DateTime _endDate;
   late TimeOfDay _endTime;
   late DateTime _notifyDate;
   late TimeOfDay _notifyTime;
@@ -46,94 +50,42 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
   @override
   void initState() {
     super.initState();
-    _startTime = TimeOfDay.now();
-    _endDate = _startDate;
-    _notifyDate = _startDate;
 
-    final now = TimeOfDay.now();
-    _endTime = now.replacing(hour: (now.hour + 1) % 24);
-    _notifyTime = now.replacing(hour: (now.hour - 1 + 24) % 24);
-    _showManualForm = widget.showManualForm;
-    if (widget.initialEvent != null) {
-      final event = widget.initialEvent!;
-      _titleController.text = event.title;
-      _locationController.text = event.location;
-      _startDate = event.startTime;
-      _startTime = TimeOfDay.fromDateTime(event.startTime);
-      _endDate = event.endTime;
-      _endTime = TimeOfDay.fromDateTime(event.endTime);
-      _isAllDay = _startTime.hour == 0 &&
-          _startTime.minute == 0 &&
-          _endTime.hour == 23 &&
-          _endTime.minute == 59;
-      final notifyDateTime = event.startTime.subtract(const Duration(hours: 1));
-      _notifyDate = notifyDateTime;
-      _notifyTime = TimeOfDay.fromDateTime(notifyDateTime);
-      _showManualForm = widget.showManualForm;
-      _isAnalyzed = true;
+    // 既存の予定データで初期化
+    _titleController.text = widget.title;
+    _locationController.text = widget.location;
+    _addressController.text = widget.address ?? '';
+
+    _startDate = widget.startTime;
+    _startTime = TimeOfDay.fromDateTime(widget.startTime);
+    _endDate = widget.endTime;
+    _endTime = TimeOfDay.fromDateTime(widget.endTime);
+
+    // 終日判定
+    _isAllDay = _startTime.hour == 0 &&
+        _startTime.minute == 0 &&
+        _endTime.hour == 23 &&
+        _endTime.minute == 59;
+
+    // 通知設定
+    if (widget.notifyAt != null) {
+      _notificationEnabled = true;
+      _notifyDate = widget.notifyAt!;
+      _notifyTime = TimeOfDay.fromDateTime(widget.notifyAt!);
+    } else {
+      _notificationEnabled = false;
+      _notifyDate = _startDate;
+      _notifyTime =
+          TimeOfDay.fromDateTime(_startDate.subtract(const Duration(hours: 1)));
     }
   }
 
   @override
   void dispose() {
-    _naturalLanguageController.dispose();
     _titleController.dispose();
     _locationController.dispose();
     _addressController.dispose();
     super.dispose();
-  }
-
-  Future<void> _analyzeNaturalLanguage() async {
-    if (_naturalLanguageController.text.trim().isEmpty) return;
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final result = await EventApi.extractEvent([
-        {"role": "user", "text": _naturalLanguageController.text}
-      ]);
-      if (result != null) {
-        final event = Schedule.fromJson(result);
-        setState(() {
-          _titleController.text = event.title;
-          _locationController.text = event.location;
-          _startDate = event.startTime;
-          _startTime = TimeOfDay.fromDateTime(event.startTime);
-          _endDate = event.endTime;
-          _endTime = TimeOfDay.fromDateTime(event.endTime);
-
-          _isAllDay = _startTime.hour == 0 &&
-              _startTime.minute == 0 &&
-              _endTime.hour == 23 &&
-              _endTime.minute == 59;
-
-          final notifyDateTime =
-              event.startTime.subtract(const Duration(hours: 1));
-          _notifyDate = notifyDateTime;
-          _notifyTime = TimeOfDay.fromDateTime(notifyDateTime);
-
-          _isAnalyzed = true;
-          _showManualForm = true;
-        });
-      } else {
-        _showErrorSnackBar('予定の解析に失敗しました。手動で入力してください。');
-      }
-    } catch (e) {
-      _showErrorSnackBar('エラーが発生しました: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  void _showManualInput() {
-    setState(() {
-      _showManualForm = true;
-      _isAnalyzed = false;
-    });
   }
 
   void _toggleAllDay(bool value) {
@@ -189,7 +141,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
     });
   }
 
-  Future<void> _saveSchedule() async {
+  Future<void> _updateSchedule() async {
     if (_titleController.text.trim().isEmpty ||
         _locationController.text.trim().isEmpty) {
       _showErrorSnackBar('タイトルと場所は必須です');
@@ -229,25 +181,40 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
         notifyAtString = toIso8601WithOffset(notifyDateTime);
       }
 
-      final success = await ScheduleApi.createSchedule(
-        title: _titleController.text,
-        startTime: toIso8601WithOffset(startDateTime),
-        endTime: toIso8601WithOffset(endDateTime),
-        location: _locationController.text,
-        address:
-            _addressController.text.isNotEmpty ? _addressController.text : null,
-        notifyAt: notifyAtString,
+      final currentAddress =
+          _addressController.text.isNotEmpty ? _addressController.text : null;
+
+      final success = await ScheduleApi.updateSchedule(
+        eventId: widget.eventId,
+        title: _titleController.text != widget.title
+            ? _titleController.text
+            : null,
+        startTime: startDateTime != widget.startTime
+            ? toIso8601WithOffset(startDateTime)
+            : null,
+        endTime: endDateTime != widget.endTime
+            ? toIso8601WithOffset(endDateTime)
+            : null,
+        location: _locationController.text != widget.location
+            ? _locationController.text
+            : null,
+        address: currentAddress != widget.address ? currentAddress : null,
+        notifyAt: _notificationEnabled != (widget.notifyAt != null) ||
+                (_notificationEnabled &&
+                    notifyAtString != toIso8601WithOffset(widget.notifyAt!))
+            ? notifyAtString
+            : null,
       );
 
       if (success) {
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
         showCustomToast(
           context,
-          '予定を保存しました',
+          '予定を更新しました',
           backgroundColor: Colors.green,
         );
       } else {
-        _showErrorSnackBar('予定の保存に失敗しました');
+        _showErrorSnackBar('予定の更新に失敗しました');
       }
     } catch (e) {
       _showErrorSnackBar('エラーが発生しました: $e');
@@ -412,7 +379,6 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
               Expanded(
                 child: Row(
                   children: [
-                    // 時間選択
                     Expanded(
                       child: Column(
                         children: [
@@ -581,7 +547,7 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
     return ThemeBuilder(builder: (context, primaryColor) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('予定を追加'),
+          title: const Text('予定を編集'),
           centerTitle: true,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: primaryColor),
@@ -593,190 +559,162 @@ class _AddScheduleScreenState extends State<AddScheduleScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (!_showManualForm) ...[
-                AiScheduleInput(
-                  controller: _naturalLanguageController,
-                  isLoading: _isLoading,
-                  onAnalyze: _analyzeNaturalLanguage,
-                  onManualInput: _showManualInput,
-                  primaryColor: primaryColor,
-                ),
-              ],
-              if (_showManualForm) ...[
-                Card(
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              _isAnalyzed ? Icons.auto_awesome : Icons.edit,
-                              color: primaryColor,
+              Card(
+                color: Colors.white,
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.edit, color: primaryColor),
+                          const SizedBox(width: 8),
+                          const Text(
+                            '予定の詳細',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              _isAnalyzed ? 'AI解析結果' : '予定の詳細',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-
-                        LabeledTextField(
-                          label: 'タイトル *',
-                          controller: _titleController,
-                          hintText: '予定のタイトルを入力',
-                          primaryColor: primaryColor,
-                        ),
-                        const SizedBox(height: 16),
-
-                        SwitchListTile(
-                          title: const Text('終日'),
-                          value: _isAllDay,
-                          onChanged: _toggleAllDay,
-                          activeColor: primaryColor,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 開始日時
-                        _buildDateTimeRow(
-                          label: '開始',
-                          date: _startDate,
-                          time: _startTime,
-                          onDateTap: () =>
-                              _showCalendarPicker('start', primaryColor),
-                          onTimeTap: () =>
-                              _showScrollableTimePicker('start', primaryColor),
-                          primaryColor: primaryColor,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 終了日時
-                        _buildDateTimeRow(
-                          label: '終了',
-                          date: _endDate,
-                          time: _endTime,
-                          onDateTap: () =>
-                              _showCalendarPicker('end', primaryColor),
-                          onTimeTap: () =>
-                              _showScrollableTimePicker('end', primaryColor),
-                          primaryColor: primaryColor,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 場所
-                        LabeledTextField(
-                          label: '場所 *',
-                          controller: _locationController,
-                          hintText: '場所を入力',
-                          primaryColor: primaryColor,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 住所
-                        LabeledTextField(
-                          label: '住所（オプション）',
-                          controller: _addressController,
-                          hintText: '詳細な住所を入力',
-                          primaryColor: primaryColor,
-                        ),
-                        const SizedBox(height: 16),
-
-                        // 通知設定
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              '通知時間をカスタムする',
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Switch(
-                              value: _notificationEnabled,
-                              onChanged: (value) {
-                                setState(() {
-                                  _notificationEnabled = value;
-                                  if (value) {
-                                    final startDateTime = DateTime(
-                                      _startDate.year,
-                                      _startDate.month,
-                                      _startDate.day,
-                                      _startTime.hour,
-                                      _startTime.minute,
-                                    );
-                                    final notifyDateTime = startDateTime
-                                        .subtract(const Duration(hours: 1));
-                                    _notifyDate = notifyDateTime;
-                                    _notifyTime =
-                                        TimeOfDay.fromDateTime(notifyDateTime);
-                                  }
-                                });
-                              },
-                              activeColor: primaryColor,
-                            ),
-                          ],
-                        ),
-
-                        if (_notificationEnabled) ...[
-                          const SizedBox(height: 8),
-                          _buildDateTimeRow(
-                            label: '通知日時',
-                            date: _notifyDate,
-                            time: _notifyTime,
-                            onDateTap: () =>
-                                _showCalendarPicker('notify', primaryColor),
-                            onTimeTap: () => _showScrollableTimePicker(
-                                'notify', primaryColor),
-                            primaryColor: primaryColor,
                           ),
                         ],
-
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _isLoading ? null : _saveSchedule,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: primaryColor,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                      ),
+                      const SizedBox(height: 20),
+                      LabeledTextField(
+                        label: 'タイトル *',
+                        controller: _titleController,
+                        hintText: '予定のタイトルを入力',
+                        primaryColor: primaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      SwitchListTile(
+                        title: const Text('終日'),
+                        value: _isAllDay,
+                        onChanged: _toggleAllDay,
+                        activeColor: primaryColor,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildDateTimeRow(
+                        label: '開始',
+                        date: _startDate,
+                        time: _startTime,
+                        onDateTap: () =>
+                            _showCalendarPicker('start', primaryColor),
+                        onTimeTap: () =>
+                            _showScrollableTimePicker('start', primaryColor),
+                        primaryColor: primaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildDateTimeRow(
+                        label: '終了',
+                        date: _endDate,
+                        time: _endTime,
+                        onDateTap: () =>
+                            _showCalendarPicker('end', primaryColor),
+                        onTimeTap: () =>
+                            _showScrollableTimePicker('end', primaryColor),
+                        primaryColor: primaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      LabeledTextField(
+                        label: '場所 *',
+                        controller: _locationController,
+                        hintText: '場所を入力',
+                        primaryColor: primaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      LabeledTextField(
+                        label: '住所（オプション）',
+                        controller: _addressController,
+                        hintText: '詳細な住所を入力',
+                        primaryColor: primaryColor,
+                      ),
+                      const SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            '通知時間をカスタムする',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
                             ),
-                            child: _isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
-                                    ),
-                                  )
-                                : const Text(
-                                    '予定を保存',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
                           ),
+                          Switch(
+                            value: _notificationEnabled,
+                            onChanged: (value) {
+                              setState(() {
+                                _notificationEnabled = value;
+                                if (value) {
+                                  final startDateTime = DateTime(
+                                    _startDate.year,
+                                    _startDate.month,
+                                    _startDate.day,
+                                    _startTime.hour,
+                                    _startTime.minute,
+                                  );
+                                  final notifyDateTime = startDateTime
+                                      .subtract(const Duration(hours: 1));
+                                  _notifyDate = notifyDateTime;
+                                  _notifyTime =
+                                      TimeOfDay.fromDateTime(notifyDateTime);
+                                }
+                              });
+                            },
+                            activeColor: primaryColor,
+                          ),
+                        ],
+                      ),
+                      if (_notificationEnabled) ...[
+                        const SizedBox(height: 8),
+                        _buildDateTimeRow(
+                          label: '通知日時',
+                          date: _notifyDate,
+                          time: _notifyTime,
+                          onDateTap: () =>
+                              _showCalendarPicker('notify', primaryColor),
+                          onTimeTap: () =>
+                              _showScrollableTimePicker('notify', primaryColor),
+                          primaryColor: primaryColor,
                         ),
                       ],
-                    ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _isLoading ? null : _updateSchedule,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: _isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
+                                  ),
+                                )
+                              : const Text(
+                                  '予定を更新',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
               const SizedBox(height: 100),
             ],
           ),

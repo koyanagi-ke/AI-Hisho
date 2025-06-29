@@ -494,6 +494,7 @@ class _ChatOverlayState extends State<_ChatOverlay> {
           .where((message) => message.text != '会話から予定を追加してください')
           .map((message) {
         return {
+          // TODO: ここでのroleは、APIの仕様に合わせて調整が必要
           'role': message.isUser ? 'user' : 'user',
           'text': message.text,
         };
